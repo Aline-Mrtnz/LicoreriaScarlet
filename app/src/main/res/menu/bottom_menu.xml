@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/home"
+        android:title="Inicio"
+        />
+
+    <item
+        android:id="@+id/nav_productos"
+        android:icon="@drawable/bottlerojo"
+        android:title="Productos"/>
+
+    <item
+        android:id="@+id/nav_ventas"
+        android:icon="@drawable/growth"
+        android:title="Ventas"/>
+
+    <item
+        android:id="@+id/nav_reportes"
+        android:icon="@drawable/report"
+        android:title="Reportes"/>
+
+    <!--<item
+        android:id="@+id/nav_config"
+        android:icon="@drawable/user_red"
+        android:title="Config"/>-->
+</menu>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="negro">#FF000000</color>
+    <color name="blanco">#FFFFFFFF</color>
+    <color name="rojo">#ED2F09</color>
+    <color name="verde">#008000</color>
+    <color name="verde_pastel">#80EF80</color>
+    <color name="amaririllo_pastel">#FFD94D</color>
+    <color name="amarillo">#FFCA1A</color>
+
+    <color name="fondo">#131313</color>
+    <color name="cards">#0E0E0E</color>
+    <color name="cards_letras">#8D5F50</color>
+
+</resources>
