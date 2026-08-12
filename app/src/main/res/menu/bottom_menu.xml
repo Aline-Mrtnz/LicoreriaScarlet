@@ -10,7 +10,7 @@
 
     <item
         android:id="@+id/nav_productos"
-        android:icon="@drawable/bottlerojo"
+        android:icon="@drawable/botellaroja"
         android:title="Productos"/>
 
     <item

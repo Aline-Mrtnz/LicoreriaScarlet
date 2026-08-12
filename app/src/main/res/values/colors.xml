@@ -12,4 +12,17 @@
     <color name="cards">#0E0E0E</color>
     <color name="cards_letras">#8D5F50</color>
 
+
+    <color name="rojito">#FF2A00</color>
+
+    <color name="negrito">#090909</color>
+
+    <color name="blanquito">#FFFFFF</color>
+
+    <color name="fondito">#111111</color>
+
+    <color name="grisito">#777777</color>
+
+    <color name="cards_letritas">#777777</color>
+
 </resources>
