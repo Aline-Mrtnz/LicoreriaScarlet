@@ -669,8 +669,9 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="0dp"
-        android:layout_height="74dp"
+        android:layout_height="95dp"
         android:background="#090909"
+        android:foregroundGravity="center|center_horizontal"
         app:itemActiveIndicatorStyle="@null"
         app:itemIconTint="@color/rojo"
         app:itemTextColor="@color/rojo"
