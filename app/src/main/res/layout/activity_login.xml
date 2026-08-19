@@ -41,83 +41,102 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="68dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
-                    <EditText
-                        android:id="@+id/editTextText4"
-                        android:layout_width="5dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="68dp"
+                        android:layout_marginTop="10dp"
                         android:layout_weight="1"
-                        android:autoText="false"
-                        android:backgroundTint="@color/blanco"
-                        android:ems="10"
                         android:gravity="center"
-                        android:inputType="text"
-                        android:textAlignment="center"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                        android:textColor="@color/negro"
-                        android:textSize="20sp"
-                        android:background="@drawable/color_txt_fondo"/>
+                        android:orientation="horizontal"
+                        android:padding="10dp">
 
-                    <EditText
-                        android:id="@+id/editTextText3"
-                        android:layout_width="5dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="15dp"
-                        android:layout_weight="1"
-                        android:autoText="false"
-                        android:backgroundTint="@color/blanco"
-                        android:ems="10"
-                        android:gravity="center"
-                        android:inputType="text"
-                        android:textAlignment="center"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                        android:textColor="@color/negro"
-                        android:textSize="20sp"
-                        android:background="@drawable/color_txt_fondo"/>
+                        <EditText
+                            android:id="@+id/pin1"
+                            android:layout_width="5dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_weight="1"
+                            android:autoText="false"
+                            android:backgroundTint="@color/blanco"
+                            android:ems="10"
+                            android:gravity="center"
+                            android:inputType="number"
+                            android:maxLength="1"
+                            android:textAlignment="center"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                            android:textColor="@color/negro"
+                            android:textSize="20sp"
+                            android:background="@drawable/color_txt_fondo"/>
 
-                    <EditText
-                        android:id="@+id/editTextText2"
-                        android:layout_width="5dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="15dp"
-                        android:layout_weight="1"
-                        android:autoText="false"
-                        android:backgroundTint="@color/blanco"
-                        android:ems="10"
-                        android:gravity="center"
-                        android:inputType="text"
-                        android:textAlignment="center"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                        android:textColor="@color/negro"
-                        android:textSize="20sp"
-                        android:background="@drawable/color_txt_fondo"/>
+                        <EditText
+                            android:id="@+id/pin2"
+                            android:layout_width="5dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="15dp"
+                            android:layout_weight="1"
+                            android:autoText="false"
+                            android:backgroundTint="@color/blanco"
+                            android:ems="10"
+                            android:gravity="center"
+                            android:inputType="number"
+                            android:maxLength="1"
+                            android:textAlignment="center"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                            android:textColor="@color/negro"
+                            android:textSize="20sp"
+                            android:background="@drawable/color_txt_fondo"/>
 
-                    <EditText
-                        android:id="@+id/editTextText"
-                        android:layout_width="5dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="15dp"
-                        android:layout_weight="1"
-                        android:autoText="false"
-                        android:backgroundTint="@color/blanco"
-                        android:ems="10"
-                        android:gravity="center"
-                        android:inputType="text"
-                        android:textAlignment="center"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                        android:textColor="@color/negro"
-                        android:textSize="20sp"
-                        android:background="@drawable/color_txt_fondo"/>
+                        <EditText
+                            android:id="@+id/pin3"
+                            android:layout_width="5dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="15dp"
+                            android:layout_weight="1"
+                            android:autoText="false"
+                            android:backgroundTint="@color/blanco"
+                            android:ems="10"
+                            android:gravity="center"
+                            android:inputType="number"
+                            android:maxLength="1"
+                            android:textAlignment="center"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                            android:textColor="@color/negro"
+                            android:textSize="20sp"
+                            android:background="@drawable/color_txt_fondo"/>
+
+                        <EditText
+                            android:id="@+id/pin4"
+                            android:layout_width="5dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="15dp"
+                            android:layout_weight="1"
+                            android:autoText="false"
+                            android:backgroundTint="@color/blanco"
+                            android:ems="10"
+                            android:gravity="center"
+                            android:inputType="number"
+                            android:maxLength="1"
+                            android:textAlignment="center"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                            android:textColor="@color/negro"
+                            android:textSize="20sp"
+                            android:background="@drawable/color_txt_fondo"/>
+
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/ivTogglePassword"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_gravity="center"
+                        android:layout_marginEnd="15dp"
+                        android:contentDescription="Mostrar u ocultar PIN"
+                        android:src="@drawable/ojocerrado" />
 
                 </LinearLayout>
-
             </LinearLayout>
 
             <LinearLayout
