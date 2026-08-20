@@ -669,17 +669,22 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="0dp"
-        android:layout_height="95dp"
+        android:layout_height="80dp"
         android:background="#090909"
-        android:foregroundGravity="center|center_horizontal"
+
         app:itemActiveIndicatorStyle="@null"
         app:itemIconTint="@color/rojo"
         app:itemTextColor="@color/rojo"
         app:labelVisibilityMode="labeled"
+
+        app:itemIconSize="28dp"
+        app:itemTextAppearanceActive="@style/BottomNavigationText"
+        app:itemTextAppearanceInactive="@style/BottomNavigationText"
+
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+
         app:menu="@menu/bottom_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

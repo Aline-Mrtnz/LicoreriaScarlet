@@ -2,6 +2,7 @@ package com.example.scarlet
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -18,15 +19,60 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        val header =
+            findViewById<android.view.View>(R.id.headerLayout)
+
+        val bottomNavigation =
+            findViewById<BottomNavigationView>(R.id.bottomNavigation)
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+            findViewById(R.id.main)
+        ) { _, insets ->
 
             val systemBars =
-                insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                )
 
-            v.setPadding(
-                systemBars.left,
+            // ===============================
+            // HEADER
+            // ===============================
+
+            val headerParams =
+                header.layoutParams as ViewGroup.MarginLayoutParams
+
+            headerParams.height =
+                (82 * resources.displayMetrics.density).toInt() +
+                        systemBars.top
+
+            header.layoutParams = headerParams
+
+            header.setPadding(
+                header.paddingLeft,
                 systemBars.top,
-                systemBars.right,
+                header.paddingRight,
+                header.paddingBottom
+            )
+
+
+            // ===============================
+            // MENU INFERIOR
+            // ===============================
+
+            val bottomParams =
+                bottomNavigation.layoutParams
+                        as ViewGroup.MarginLayoutParams
+
+            bottomParams.height =
+                (80 * resources.displayMetrics.density).toInt() +
+                        systemBars.bottom
+
+            bottomNavigation.layoutParams = bottomParams
+
+            bottomNavigation.setPadding(
+                bottomNavigation.paddingLeft,
+                bottomNavigation.paddingTop,
+                bottomNavigation.paddingRight,
                 systemBars.bottom
             )
 
@@ -37,9 +83,6 @@ class MainActivity : AppCompatActivity() {
         // ============================================
         // BOTTOM NAVIGATION
         // ============================================
-
-        val bottomNavigation =
-            findViewById<BottomNavigationView>(R.id.bottomNavigation)
 
         bottomNavigation.selectedItemId = R.id.nav_home
 
@@ -59,7 +102,6 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
 
-
                 R.id.nav_ventas -> {
 
                     startActivity(
@@ -72,12 +114,9 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
 
-
                 R.id.nav_home -> {
-
                     true
                 }
-
 
                 else -> false
             }
