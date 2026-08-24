@@ -114,6 +114,18 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
 
+                R.id.nav_reportes -> {
+
+                    startActivity(
+                        Intent(
+                            this,
+                            Reportes::class.java
+                        )
+                    )
+
+                    true
+                }
+
                 R.id.nav_home -> {
                     true
                 }

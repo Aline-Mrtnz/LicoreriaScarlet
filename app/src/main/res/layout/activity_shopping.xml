@@ -9,9 +9,7 @@
     android:background="#0A0A0A"
     tools:context=".Shopping">
 
-    <!-- ========================= -->
     <!-- HEADER -->
-    <!-- ========================= -->
     <LinearLayout
         android:id="@+id/headerLayout"
         android:layout_width="match_parent"
@@ -46,9 +44,7 @@
 
     </LinearLayout>
 
-    <!-- ========================= -->
     <!-- CONTENIDO SCROLL -->
-    <!-- ========================= -->
     <ScrollView
         android:id="@+id/scrollShopping"
         android:layout_width="0dp"
@@ -68,7 +64,7 @@
             android:paddingEnd="16dp"
             android:paddingBottom="20dp">
 
-            <!-- TÍTULO SECCIÓN -->
+            <!-- TÍTULO -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -80,9 +76,7 @@
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-            <!-- ========================= -->
             <!-- PRODUCTO 1: MACALLAN -->
-            <!-- ========================= -->
             <LinearLayout
                 android:id="@+id/itemMacallan"
                 android:layout_width="match_parent"
@@ -159,13 +153,17 @@
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:background="@drawable/bg_plus_button_minimal"
+                        android:backgroundTint="@null"
+                        android:elevation="0dp"
+                        android:stateListAnimator="@null"
                         android:gravity="center"
                         android:minWidth="0dp"
                         android:minHeight="0dp"
                         android:padding="0dp"
                         android:text="-"
                         android:textColor="#FF3B16"
-                        android:textSize="18sp" />
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/cantidadMacallan"
@@ -188,11 +186,11 @@
                         android:padding="0dp"
                         android:text="+"
                         android:textColor="#FF3B16"
-                        android:textSize="18sp" />
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
                 </LinearLayout>
 
-                <!-- Línea divisora -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
@@ -202,9 +200,7 @@
 
             </LinearLayout>
 
-            <!-- ========================= -->
             <!-- PRODUCTO 2: HENNESSY -->
-            <!-- ========================= -->
             <LinearLayout
                 android:id="@+id/itemHennessy"
                 android:layout_width="match_parent"
@@ -287,7 +283,8 @@
                         android:padding="0dp"
                         android:text="-"
                         android:textColor="#FF3B16"
-                        android:textSize="18sp" />
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/cantidadHennessy"
@@ -310,31 +307,28 @@
                         android:padding="0dp"
                         android:text="+"
                         android:textColor="#FF3B16"
-                        android:textSize="18sp" />
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
                 </LinearLayout>
 
             </LinearLayout>
 
-            <!-- ========================= -->
             <!-- BOTÓN AÑADIR MÁS -->
-            <!-- ========================= -->
             <Button
                 android:id="@+id/btnAddMore"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp"
-                android:background="@drawable/bg_add_more_button"
+                android:background="@drawable/bg_add_more_button_minimal"
                 android:letterSpacing="0.03"
                 android:text="Añadir más productos"
                 android:textColor="#FF3B16"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-            <!-- ========================= -->
             <!-- RESUMEN DE PAGO -->
-            <!-- ========================= -->
             <LinearLayout
                 android:id="@+id/resumenPago"
                 android:layout_width="match_parent"
@@ -482,9 +476,7 @@
 
     </ScrollView>
 
-    <!-- ========================= -->
     <!-- BOTTOM NAVIGATION -->
-    <!-- ========================= -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"

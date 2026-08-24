@@ -21,6 +21,9 @@
             android:name=".Shopping"
             android:exported="false" />
         <activity
+            android:name=".Reportes"
+            android:exported="false" />
+        <activity
             android:name=".Temp"
             android:exported="true">
             <intent-filter>
