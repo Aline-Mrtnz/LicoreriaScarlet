@@ -94,14 +94,38 @@
             android:scaleType="centerCrop"
             android:src="@drawable/carrito" />
 
-        <ImageView
-            android:id="@+id/imgNorificacion"
-            android:layout_width="14dp"
-            android:layout_height="18dp"
-            android:layout_marginLeft="5dp"
+        <FrameLayout
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginStart="5dp"
             android:layout_marginEnd="4dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/notification" />
+            android:layout_gravity="center_vertical">
+
+            <!-- CAMPANA -->
+            <ImageView
+                android:id="@+id/imgNotificacion"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:translationY="-2dp"
+                android:contentDescription="Notificaciones"
+                android:scaleType="centerInside"
+                android:src="@drawable/notification" />
+
+            <!-- NUMERO DE NOTIFICACIONES -->
+            <TextView
+                android:id="@+id/txtNotificationBadge"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="top|end"
+                android:gravity="center"
+                android:text="3"
+                android:textColor="#FFFFFF"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_notification_badge" />
+
+        </FrameLayout>
 
     </LinearLayout>
 
@@ -382,21 +406,22 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="0dp"
-        android:layout_height="80dp"
+        android:layout_height="0dp"
         android:background="#090909"
 
         app:itemActiveIndicatorStyle="@null"
-        app:itemIconSize="28dp"
-        app:itemIconTint="@color/rojo"
-        app:itemTextAppearanceActive="@style/BottomNavigationText"
-
-        app:itemTextAppearanceInactive="@style/BottomNavigationText"
-        app:itemTextColor="@color/rojo"
+        app:itemIconTint="@color/bottom_nav_selector"
+        app:itemTextColor="@color/bottom_nav_selector"
         app:labelVisibilityMode="labeled"
 
+        app:itemIconSize="28dp"
+        app:itemTextAppearanceActive="@style/BottomNavigationText"
+        app:itemTextAppearanceInactive="@style/BottomNavigationText"
+
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
 
         app:menu="@menu/bottom_menu" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

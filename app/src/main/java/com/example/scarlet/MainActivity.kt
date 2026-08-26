@@ -3,6 +3,9 @@ package com.example.scarlet
 import android.content.Intent
 import android.os.Bundle
 import android.view.ViewGroup
+import android.widget.TextView
+import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -132,6 +135,69 @@ class MainActivity : AppCompatActivity() {
 
                 else -> false
             }
+        }
+        // ============================================
+        // NOTIFICACIONES
+        // ============================================
+
+        setupNotifications()
+    }
+
+    // ============================================
+    // MOSTRAR NUMERO DE NOTIFICACIONES
+    // ============================================
+
+    private fun setupNotifications() {
+
+        val notificationIcon =
+            findViewById<ImageView>(
+                R.id.imgNotificacion
+            )
+
+        val badge =
+            findViewById<TextView>(
+                R.id.txtNotificationBadge
+            )
+
+        val notificationCount = 3
+
+        // ============================================
+        // MOSTRAR NUMERO DE NOTIFICACIONES
+        // ============================================
+
+        if (notificationCount > 0) {
+
+            badge.text =
+                if (notificationCount > 99) {
+                    "99+"
+                } else {
+                    notificationCount.toString()
+                }
+
+            badge.visibility =
+                android.view.View.VISIBLE
+
+        } else {
+
+            badge.visibility =
+                android.view.View.GONE
+        }
+
+        // ============================================
+        // TOCAR LA CAMPANA
+        // ============================================
+
+        notificationIcon.setOnClickListener {
+
+            Toast.makeText(
+                this,
+                "Tienes $notificationCount nuevas notificaciones",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            // Ocultar el número después de verlas
+            badge.visibility =
+                android.view.View.GONE
         }
     }
 }

@@ -1,20 +1,221 @@
 package com.example.scarlet
 
+import android.content.Intent
 import android.os.Bundle
+import android.view.ViewGroup
+import android.widget.TextView
+import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class Ventas : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
+
         setContentView(R.layout.activity_sales)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+
+        // ============================================
+        // REFERENCIAS
+        // ============================================
+
+        val header =
+            findViewById<android.view.View>(
+                R.id.headerLayout
+            )
+
+        val bottomNavigation =
+            findViewById<BottomNavigationView>(
+                R.id.bottomNavigation
+            )
+
+        // ============================================
+        // AJUSTAR EDGE TO EDGE
+        // ============================================
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+            findViewById(R.id.main)
+        ) { _, insets ->
+
+            val systemBars =
+                insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                )
+
+            // ============================================
+            // HEADER
+            // ============================================
+
+            val headerParams =
+                header.layoutParams as ViewGroup.MarginLayoutParams
+
+            headerParams.height =
+                (82 * resources.displayMetrics.density).toInt() +
+                        systemBars.top
+
+            header.layoutParams = headerParams
+
+            header.setPadding(
+                header.paddingLeft,
+                systemBars.top,
+                header.paddingRight,
+                header.paddingBottom
+            )
+
+            // ============================================
+            // MENU INFERIOR
+            // ============================================
+
+            val bottomParams =
+                bottomNavigation.layoutParams
+                        as ViewGroup.MarginLayoutParams
+
+            bottomParams.height =
+                (80 * resources.displayMetrics.density).toInt() +
+                        systemBars.bottom
+
+            bottomNavigation.layoutParams = bottomParams
+
+            bottomNavigation.setPadding(
+                bottomNavigation.paddingLeft,
+                bottomNavigation.paddingTop,
+                bottomNavigation.paddingRight,
+                systemBars.bottom
+            )
+
             insets
+        }
+
+        // ============================================
+        // BOTTOM NAVIGATION
+        // ============================================
+
+        bottomNavigation.selectedItemId =
+            R.id.nav_ventas
+
+        bottomNavigation.setOnItemSelectedListener { item ->
+
+            when (item.itemId) {
+
+                R.id.nav_home -> {
+
+                    startActivity(
+                        Intent(
+                            this,
+                            MainActivity::class.java
+                        )
+                    )
+
+                    finish()
+
+                    true
+                }
+
+                R.id.nav_productos -> {
+
+                    startActivity(
+                        Intent(
+                            this,
+                            Productos::class.java
+                        )
+                    )
+
+                    finish()
+
+                    true
+                }
+
+                R.id.nav_ventas -> {
+
+                    true
+                }
+
+                R.id.nav_reportes -> {
+
+                    startActivity(
+                        Intent(
+                            this,
+                            Reportes::class.java
+                        )
+                    )
+
+                    finish()
+
+                    true
+                }
+
+                else -> false
+            }
+        }
+
+        // ============================================
+        // NOTIFICACIONES
+        // ============================================
+
+        setupNotifications()
+    }
+
+    // ============================================
+    // MOSTRAR NUMERO DE NOTIFICACIONES
+    // ============================================
+
+    private fun setupNotifications() {
+
+        val notificationIcon =
+            findViewById<ImageView>(
+                R.id.imgNotificacion
+            )
+
+        val badge =
+            findViewById<TextView>(
+                R.id.txtNotificationBadge
+            )
+
+        val notificationCount = 3
+
+        // ============================================
+        // MOSTRAR NUMERO DE NOTIFICACIONES
+        // ============================================
+
+        if (notificationCount > 0) {
+
+            badge.text =
+                if (notificationCount > 99) {
+                    "99+"
+                } else {
+                    notificationCount.toString()
+                }
+
+            badge.visibility =
+                android.view.View.VISIBLE
+
+        } else {
+
+            badge.visibility =
+                android.view.View.GONE
+        }
+
+        // ============================================
+        // TOCAR LA CAMPANA
+        // ============================================
+
+        notificationIcon.setOnClickListener {
+
+            Toast.makeText(
+                this,
+                "Tienes $notificationCount nuevas notificaciones",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            // Ocultar el número después de verlas
+            badge.visibility =
+                android.view.View.GONE
         }
     }
 }

@@ -13,6 +13,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.text.NumberFormat
 import java.util.Locale
+import android.view.ViewGroup
 
 class Shopping : AppCompatActivity() {
 
@@ -34,16 +35,67 @@ class Shopping : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_shopping)
 
+        val bottomNavigation =
+            findViewById<BottomNavigationView>(
+                R.id.bottomNavigation
+            )
+
+        val header =
+            findViewById<android.view.View>(
+                R.id.headerLayout
+            )
+
         ViewCompat.setOnApplyWindowInsetsListener(
             findViewById(R.id.main)
-        ) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(
-                systemBars.left,
+        ) { _, insets ->
+
+            val systemBars =
+                insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                )
+
+            // ===============================
+            // HEADER
+            // ===============================
+
+            val headerParams =
+                header.layoutParams as ViewGroup.MarginLayoutParams
+
+            headerParams.height =
+                (70 * resources.displayMetrics.density).toInt() +
+                        systemBars.top
+
+            header.layoutParams = headerParams
+
+            header.setPadding(
+                header.paddingLeft,
                 systemBars.top,
-                systemBars.right,
+                header.paddingRight,
+                header.paddingBottom
+            )
+
+
+            // ===============================
+            // MENU INFERIOR
+            // ===============================
+
+            val bottomParams =
+                bottomNavigation.layoutParams
+                        as ViewGroup.MarginLayoutParams
+
+            bottomParams.height =
+                (80 * resources.displayMetrics.density).toInt() +
+                        systemBars.bottom
+
+            bottomNavigation.layoutParams = bottomParams
+
+            bottomNavigation.setPadding(
+                bottomNavigation.paddingLeft,
+                bottomNavigation.paddingTop,
+                bottomNavigation.paddingRight,
                 systemBars.bottom
             )
+
             insets
         }
 
