@@ -7,9 +7,39 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.scarlet.adapter.TopProductosAdapter
+import com.example.scarlet.data.model.TopProducto
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class Reportes : AppCompatActivity() {
+
+    private lateinit var recyclerViewTopProductos: RecyclerView
+    private lateinit var topProductosAdapter: TopProductosAdapter
+
+    // Top productos de ejemplo por filtro. En una integración real esto
+    // vendría de ReportesRepository / VentasRepository según el rango de fechas.
+    private val topProductosPorFiltro = mapOf(
+        "Día" to listOf(
+            TopProducto("Macallan 18 Years", "Whisky Escocés", 349.00, 3, R.drawable.macallan18),
+            TopProducto("Clase Azul Reposado", "Tequila Artesanal", 210.00, 2, R.drawable.clase_azul)
+        ),
+        "Semana" to listOf(
+            TopProducto("Macallan 18 Years", "Whisky Escocés", 349.00, 24, R.drawable.macallan18),
+            TopProducto("Clase Azul Reposado", "Tequila Artesanal", 210.00, 18, R.drawable.clase_azul)
+        ),
+        "Mes" to listOf(
+            TopProducto("Macallan 18 Years", "Whisky Escocés", 349.00, 96, R.drawable.macallan18),
+            TopProducto("Clase Azul Reposado", "Tequila Artesanal", 210.00, 74, R.drawable.clase_azul),
+            TopProducto("Hennessy X.O", "Cognac", 280.00, 51, R.drawable.hennessyxo)
+        ),
+        "Año" to listOf(
+            TopProducto("Macallan 18 Years", "Whisky Escocés", 349.00, 1120, R.drawable.macallan18),
+            TopProducto("Clase Azul Reposado", "Tequila Artesanal", 210.00, 890, R.drawable.clase_azul),
+            TopProducto("Hennessy X.O", "Cognac", 280.00, 640, R.drawable.hennessyxo)
+        )
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,8 +59,18 @@ class Reportes : AppCompatActivity() {
             insets
         }
 
+        configurarRecyclerView()
         setupFilters()
         setupBottomNavigation()
+    }
+
+    private fun configurarRecyclerView() {
+        recyclerViewTopProductos = findViewById(R.id.recyclerViewTopProductos)
+        recyclerViewTopProductos.layoutManager = LinearLayoutManager(this)
+        recyclerViewTopProductos.isNestedScrollingEnabled = false
+
+        topProductosAdapter = TopProductosAdapter(topProductosPorFiltro.getValue("Día"))
+        recyclerViewTopProductos.adapter = topProductosAdapter
     }
 
     private fun setupFilters() {
@@ -83,6 +123,8 @@ class Reportes : AppCompatActivity() {
                 findViewById<TextView>(R.id.txtGanancia).text = "$412,000"
             }
         }
+
+        topProductosPorFiltro[filter]?.let { topProductosAdapter.actualizar(it) }
     }
 
     private fun setupBottomNavigation() {

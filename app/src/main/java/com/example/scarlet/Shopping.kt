@@ -5,24 +5,43 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.scarlet.adapter.CartAdapter
+import com.example.scarlet.data.model.CartItem
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.text.NumberFormat
 import java.util.Locale
 
 class Shopping : AppCompatActivity() {
 
-    // Variables para cantidades
-    private var cantidadMacallan = 1
-    private var cantidadHennessy = 2
+    private lateinit var recyclerViewCarrito: RecyclerView
+    private lateinit var adapter: CartAdapter
 
-    // Precios base
-    private val precioMacallanBase = 450.00
-    private val precioHennessyBase = 280.00
+    // Carrito de ejemplo. En una integración real esto vendría de un
+    // repositorio/CartManager compartido con la pantalla de Productos.
+    private val carrito = mutableListOf(
+        CartItem(
+            idProducto = 1,
+            nombre = "Macallan 18 Years",
+            categoria = "SINGLE MALT SCOTCH",
+            precioUnitario = 450.00,
+            imagenResId = R.drawable.macallan18,
+            cantidad = 1
+        ),
+        CartItem(
+            idProducto = 2,
+            nombre = "Hennessy X.O",
+            categoria = "COGNAC",
+            precioUnitario = 280.00,
+            imagenResId = R.drawable.hennessyxo,
+            cantidad = 2
+        )
+    )
 
     // TextViews del resumen
     private lateinit var txtSubtotal: TextView
@@ -52,11 +71,11 @@ class Shopping : AppCompatActivity() {
         txtImpuestos = findViewById(R.id.txtImpuestos)
         txtTotal = findViewById(R.id.txtTotal)
 
+        // Configurar RecyclerView del carrito
+        configurarRecyclerView()
+
         // Configurar botón de volver
         setupBackButton()
-
-        // Configurar controles de cantidad
-        setupQuantityControls()
 
         // Configurar botón "Añadir más productos"
         setupAddMoreButton()
@@ -71,73 +90,22 @@ class Shopping : AppCompatActivity() {
         updateSummary()
     }
 
-    private fun setupBackButton() {
-        val btnBack = findViewById<ImageView>(R.id.btnBack)
-        btnBack.setOnClickListener {
-            finish()
-        }
-    }
+    private fun configurarRecyclerView() {
+        recyclerViewCarrito = findViewById(R.id.recyclerViewCarrito)
+        recyclerViewCarrito.layoutManager = LinearLayoutManager(this)
+        recyclerViewCarrito.isNestedScrollingEnabled = false
 
-    private fun setupQuantityControls() {
-        // Macallan
-        setupProductQuantity(
-            btnRestar = R.id.btnRestarMacallan,
-            btnSumar = R.id.btnSumarMacallan,
-            txtCantidad = R.id.cantidadMacallan,
-            txtPrecio = R.id.precioMacallan,
-            cantidad = { cantidadMacallan },
-            setCantidad = { cantidadMacallan = it },
-            precioBase = precioMacallanBase
-        )
-
-        // Hennessy
-        setupProductQuantity(
-            btnRestar = R.id.btnRestarHennessy,
-            btnSumar = R.id.btnSumarHennessy,
-            txtCantidad = R.id.cantidadHennessy,
-            txtPrecio = R.id.precioHennessy,
-            cantidad = { cantidadHennessy },
-            setCantidad = { cantidadHennessy = it },
-            precioBase = precioHennessyBase
-        )
-    }
-
-    private fun setupProductQuantity(
-        btnRestar: Int,
-        btnSumar: Int,
-        txtCantidad: Int,
-        txtPrecio: Int,
-        cantidad: () -> Int,
-        setCantidad: (Int) -> Unit,
-        precioBase: Double
-    ) {
-        val tvCantidad = findViewById<TextView>(txtCantidad)
-        val tvPrecio = findViewById<TextView>(txtPrecio)
-
-        findViewById<Button>(btnRestar).setOnClickListener {
-            if (cantidad() > 1) {
-                setCantidad(cantidad() - 1)
-                tvCantidad.text = cantidad().toString()
-                val total = precioBase * cantidad()
-                tvPrecio.text = formatPrice(total)
-                updateSummary()
-            } else {
-                Toast.makeText(this, "La cantidad mínima es 1", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        findViewById<Button>(btnSumar).setOnClickListener {
-            setCantidad(cantidad() + 1)
-            tvCantidad.text = cantidad().toString()
-            val total = precioBase * cantidad()
-            tvPrecio.text = formatPrice(total)
+        adapter = CartAdapter(carrito) {
+            // Se llama cada vez que el usuario cambia una cantidad
             updateSummary()
         }
+
+        recyclerViewCarrito.adapter = adapter
     }
 
     private fun updateSummary() {
-        // Calcular subtotal
-        val subtotal = (precioMacallanBase * cantidadMacallan) + (precioHennessyBase * cantidadHennessy)
+        // Calcular subtotal a partir de los items del carrito
+        val subtotal = carrito.sumOf { it.subtotal }
 
         // Calcular impuestos (16%)
         val impuestos = subtotal * 0.16
@@ -150,17 +118,20 @@ class Shopping : AppCompatActivity() {
         txtImpuestos.text = formatPrice(impuestos)
         txtTotal.text = formatPrice(total)
 
-        // Actualizar texto del subtotal con cantidad de items
-        val totalItems = cantidadMacallan + cantidadHennessy
-        findViewById<TextView>(R.id.txtSubtotal).text =
-            formatPrice(subtotal)
-        // Nota: El texto "Subtotal (3 items)" está fijo en el XML
-        // Podrías actualizarlo dinámicamente si quieres
+        // Nota: El texto "Subtotal (N items)" está fijo en el XML.
+        // val totalItems = carrito.sumOf { it.cantidad }
     }
 
     private fun formatPrice(amount: Double): String {
         val format = NumberFormat.getCurrencyInstance(Locale.US)
         return format.format(amount)
+    }
+
+    private fun setupBackButton() {
+        val btnBack = findViewById<ImageView>(R.id.btnBack)
+        btnBack.setOnClickListener {
+            finish()
+        }
     }
 
     private fun setupAddMoreButton() {
@@ -180,7 +151,7 @@ class Shopping : AppCompatActivity() {
             intent.putExtra("subtotal", txtSubtotal.text.toString())
             intent.putExtra("impuestos", txtImpuestos.text.toString())
             intent.putExtra("total", txtTotal.text.toString())
-            intent.putExtra("items", cantidadMacallan + cantidadHennessy)
+            intent.putExtra("items", carrito.sumOf { it.cantidad })
             startActivity(intent)
         }
     }
@@ -192,7 +163,8 @@ class Shopping : AppCompatActivity() {
         bottomNav.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_home -> {
-                    Toast.makeText(this, "Home", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
                     true
                 }
                 R.id.nav_productos -> {
@@ -205,7 +177,8 @@ class Shopping : AppCompatActivity() {
                     true
                 }
                 R.id.nav_reportes -> {
-                    Toast.makeText(this, "Profile", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, Reportes::class.java)
+                    startActivity(intent)
                     true
                 }
                 else -> false

@@ -10,7 +10,6 @@
     android:background="#111111"
     tools:context=".MainActivity">
 
-
     <!-- ================================================= -->
     <!-- HEADER -->
     <!-- ================================================= -->
@@ -28,18 +27,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-
         <!-- MENU -->
-
-        <!--<TextView
-            android:id="@+id/txtMenu"
-            android:layout_width="28dp"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="☰"
-            android:textColor="#FF2A00"
-            android:textSize="19sp" />-->
-
         <ImageView
             android:id="@+id/imgMenu"
             android:layout_width="18dp"
@@ -50,7 +38,6 @@
             android:src="@drawable/menu" />
 
         <!-- INFORMACION -->
-
         <LinearLayout
             android:layout_width="178dp"
             android:layout_height="match_parent"
@@ -59,15 +46,14 @@
             android:orientation="vertical"
             android:paddingStart="6dp">
 
-
             <TextView
+                android:id="@+id/nav_profile"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="SCARLET"
                 android:textColor="#FF2A00"
                 android:textSize="17sp"
                 android:textStyle="bold" />
-
 
             <TextView
                 android:layout_width="wrap_content"
@@ -77,7 +63,6 @@
                 android:textColor="#777777"
                 android:textSize="7sp" />
 
-
             <TextView
                 android:id="@+id/txtNombre"
                 android:layout_width="wrap_content"
@@ -86,7 +71,6 @@
                 android:textColor="#FFFFFF"
                 android:textSize="11sp"
                 android:textStyle="bold" />
-
 
             <TextView
                 android:id="@+id/txtRol"
@@ -98,9 +82,7 @@
 
         </LinearLayout>
 
-
         <!-- AVATAR -->
-
         <ImageView
             android:id="@+id/imgPerfil"
             android:layout_width="34dp"
@@ -111,19 +93,7 @@
             android:scaleType="centerCrop"
             android:src="@drawable/scarlet" />
 
-
-        <!-- NOTIFICACION -->
-
-        <!--<TextView
-            android:id="@+id/txtNotification"
-            android:layout_width="25dp"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="♧"
-            android:textColor="#FF2A00"
-            android:textSize="17sp" />-->
-
-        <!--CARRITO-->
+        <!-- CARRITO -->
         <ImageView
             android:id="@+id/imgCarrito"
             android:layout_width="18dp"
@@ -134,6 +104,7 @@
             android:scaleType="centerCrop"
             android:src="@drawable/carrito" />
 
+        <!-- NOTIFICACION -->
         <ImageView
             android:id="@+id/imgNorificacion"
             android:layout_width="14dp"
@@ -144,7 +115,6 @@
             android:src="@drawable/notification" />
 
     </LinearLayout>
-
 
     <!-- ================================================= -->
     <!-- CONTENIDO SCROLL -->
@@ -161,7 +131,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -170,7 +139,6 @@
             android:paddingEnd="12dp"
             android:paddingTop="16dp"
             android:paddingBottom="80dp">
-
 
             <!-- ================================================= -->
             <!-- ESTADISTICAS -->
@@ -186,9 +154,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
-
                     <!-- VENTAS -->
-
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="82dp"
                         android:layout_height="65dp"
@@ -221,12 +187,9 @@
                                 android:textStyle="bold" />
 
                         </LinearLayout>
-
                     </com.google.android.material.card.MaterialCardView>
 
-
                     <!-- PRODUCTOS -->
-
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="82dp"
                         android:layout_height="65dp"
@@ -259,12 +222,9 @@
                                 android:textStyle="bold" />
 
                         </LinearLayout>
-
                     </com.google.android.material.card.MaterialCardView>
 
-
                     <!-- STOCK -->
-
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="82dp"
                         android:layout_height="65dp"
@@ -296,13 +256,10 @@
                                 android:textStyle="bold" />
 
                         </LinearLayout>
-
                     </com.google.android.material.card.MaterialCardView>
 
                 </LinearLayout>
-
             </HorizontalScrollView>
-
 
             <!-- ========================= -->
             <!-- CATEGORIAS TITULO -->
@@ -335,20 +292,18 @@
 
             </LinearLayout>
 
-
             <!-- ========================= -->
             <!-- CATEGORIAS -->
             <!-- ========================= -->
 
+            <!-- PRIMERA FILA -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:orientation="horizontal">
 
-
                 <!-- WHISKY -->
-
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="70dp"
@@ -365,21 +320,20 @@
                         android:contentDescription="Whisky" />
 
                     <TextView
+                        android:id="@+id/nav_car1"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:background="#66000000"
                         android:gravity="bottom"
                         android:padding="7dp"
                         android:text="Whisky"
                         android:textColor="#FFFFFF"
                         android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:background="#66000000" />
+                        android:textStyle="bold" />
 
                 </com.google.android.material.card.MaterialCardView>
 
-
                 <!-- VINO -->
-
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="70dp"
@@ -410,18 +364,14 @@
 
             </LinearLayout>
 
-
             <!-- SEGUNDA FILA -->
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:orientation="horizontal">
 
-
                 <!-- CERVEZA -->
-
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="70dp"
@@ -450,9 +400,7 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
-
                 <!-- TEQUILA -->
-
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="70dp"
@@ -483,7 +431,6 @@
 
             </LinearLayout>
 
-
             <!-- ========================= -->
             <!-- PRODUCTOS RECIENTES -->
             <!-- ========================= -->
@@ -497,152 +444,16 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-
-            <!-- PRODUCTO 1 -->
-
-            <com.google.android.material.card.MaterialCardView
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewProductos"
                 android:layout_width="match_parent"
-                android:layout_height="64dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                app:cardBackgroundColor="#090909"
-                app:cardCornerRadius="8dp"
-                app:strokeColor="#252525"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="7dp">
-
-                    <ImageView
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/macallan"
-                        android:contentDescription="Macallan 18 Years" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Macallan 18 Years"
-                            android:textColor="#FFFFFF"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Whisky Escocés · 750ml"
-                            android:textColor="#777777"
-                            android:textSize="9sp" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="$349.00"
-                            android:textColor="#FF2A00"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Stock: 12"
-                        android:textColor="#FFFFFF"
-                        android:textSize="8sp"
-                        android:background="#333333"
-                        android:padding="5dp" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-
-            <!-- PRODUCTO 2 -->
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="64dp"
-                android:layout_marginTop="8dp"
-                app:cardBackgroundColor="#090909"
-                app:cardCornerRadius="8dp"
-                app:strokeColor="#252525"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="7dp">
-
-                    <ImageView
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/clase_azul"
-                        android:contentDescription="Clase Azul Reposado" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Clase Azul Reposado"
-                            android:textColor="#FFFFFF"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Tequila Artesanal · 750ml"
-                            android:textColor="#777777"
-                            android:textSize="9sp" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="$210.00"
-                            android:textColor="#FF2A00"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Stock: 8"
-                        android:textColor="#FFFFFF"
-                        android:textSize="8sp"
-                        android:background="#333333"
-                        android:padding="5dp" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
+                android:nestedScrollingEnabled="false" />
 
         </LinearLayout>
 
     </ScrollView>
-
 
     <!-- ========================= -->
     <!-- BOTON + -->
@@ -661,7 +472,6 @@
         app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
         app:layout_constraintEnd_toEndOf="parent" />
 
-
     <!-- ========================= -->
     <!-- BOTTOM NAVIGATION -->
     <!-- ========================= -->
@@ -669,22 +479,18 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:background="#090909"
-
         app:itemActiveIndicatorStyle="@null"
         app:itemIconTint="@color/rojo"
         app:itemTextColor="@color/rojo"
         app:labelVisibilityMode="labeled"
-
         app:itemIconSize="28dp"
         app:itemTextAppearanceActive="@style/BottomNavigationText"
         app:itemTextAppearanceInactive="@style/BottomNavigationText"
-
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-
         app:menu="@menu/bottom_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

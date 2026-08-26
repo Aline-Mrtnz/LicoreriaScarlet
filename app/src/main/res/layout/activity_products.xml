@@ -6,832 +6,206 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0A0A"
+    android:background="#111111"
     tools:context=".Productos">
 
-    <!-- ========================= -->
     <!-- HEADER -->
-    <!-- ========================= -->
     <LinearLayout
         android:id="@+id/headerLayout"
-        android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:orientation="horizontal"
+        android:layout_width="0dp"
+        android:layout_height="82dp"
+        android:background="#080808"
         android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:background="#0A0A0A"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <ImageView
             android:id="@+id/imgMenu"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/menu"
-            android:contentDescription="Menú"
-            android:padding="4dp" />
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginEnd="12dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/menu" />
 
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingStart="12dp">
+            android:gravity="center_vertical"
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/txtScarlet"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="SCARLET"
-                android:textColor="#FF3B16"
-                android:textStyle="bold"
-                android:textSize="18sp" />
+                android:textColor="#FF2A00"
+                android:textSize="17sp"
+                android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/txtBienvenido"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
                 android:text="PRODUCTOS"
                 android:textColor="#777777"
-                android:textSize="8sp" />
+                android:textSize="7sp" />
 
         </LinearLayout>
 
         <ImageView
             android:id="@+id/imgCarrito"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/carrito"
-            android:contentDescription="Carrito"
-            android:padding="4dp"
-            android:layout_marginEnd="8dp" />
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginEnd="12dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/carrito" />
 
         <ImageView
-            android:id="@+id/imgNotificacion"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/notification"
-            android:contentDescription="Notificaciones"
-            android:padding="4dp" />
+            android:id="@+id/imgNotification"
+            android:layout_width="14dp"
+            android:layout_height="18dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/notification" />
 
     </LinearLayout>
 
-    <!-- ========================= -->
-    <!-- CONTENIDO -->
-    <!-- ========================= -->
-    <ScrollView
-        android:id="@+id/scrollProductos"
+    <!-- BUSCADOR -->
+    <EditText
+        android:id="@+id/edtBuscar"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:fillViewport="true"
-        android:scrollbars="none"
+        android:layout_height="45dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_search"
+        android:drawableStart="@drawable/ic_search"
+        android:drawablePadding="10dp"
+        android:hint="Buscar productos..."
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#777777"
+        android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@id/headerLayout"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- CATEGORÍAS -->
+    <HorizontalScrollView
+        android:id="@+id/catScroll"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/edtBuscar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingBottom="80dp">
-
-            <!-- BUSCADOR -->
-            <LinearLayout
-                android:id="@+id/searchContainer"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/bg_search"
-                android:gravity="center_vertical"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:elevation="2dp">
-
-                <TextView
-                    android:layout_width="24dp"
-                    android:layout_height="wrap_content"
-                    android:text="🔍"
-                    android:textColor="#666666"
-                    android:textSize="16sp" />
-
-                <EditText
-                    android:id="@+id/edtBuscar"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/transparent"
-                    android:hint="Buscar spirits, wine, beer..."
-                    android:textColorHint="#555555"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:singleLine="true"
-                    android:paddingStart="8dp" />
-
-            </LinearLayout>
-
-            <!-- MENÚ CATEGORÍAS HORIZONTAL -->
-            <HorizontalScrollView
-                android:id="@+id/horizontalCategories"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:scrollbars="none"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingStart="4dp"
-                    android:paddingEnd="4dp">
-
-                    <TextView
-                        android:id="@+id/catTodos"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:paddingStart="18dp"
-                        android:paddingEnd="18dp"
-                        android:gravity="center"
-                        android:text="Todos"
-                        android:textColor="#FFFFFF"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:background="@drawable/bg_category_selected"
-                        android:layout_marginEnd="8dp" />
-
-                    <TextView
-                        android:id="@+id/catWhisky"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:paddingStart="18dp"
-                        android:paddingEnd="18dp"
-                        android:gravity="center"
-                        android:text="Whisky"
-                        android:textColor="#AAAAAA"
-                        android:textSize="13sp"
-                        android:background="@drawable/bg_category_unselected"
-                        android:layout_marginEnd="8dp" />
-
-                    <TextView
-                        android:id="@+id/catTequila"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:paddingStart="18dp"
-                        android:paddingEnd="18dp"
-                        android:gravity="center"
-                        android:text="Tequila"
-                        android:textColor="#AAAAAA"
-                        android:textSize="13sp"
-                        android:background="@drawable/bg_category_unselected"
-                        android:layout_marginEnd="8dp" />
-
-                    <TextView
-                        android:id="@+id/catCognac"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:paddingStart="18dp"
-                        android:paddingEnd="18dp"
-                        android:gravity="center"
-                        android:text="Cognac"
-                        android:textColor="#AAAAAA"
-                        android:textSize="13sp"
-                        android:background="@drawable/bg_category_unselected"
-                        android:layout_marginEnd="8dp" />
-
-                    <TextView
-                        android:id="@+id/catVodka"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:paddingStart="18dp"
-                        android:paddingEnd="18dp"
-                        android:gravity="center"
-                        android:text="Vodka"
-                        android:textColor="#AAAAAA"
-                        android:textSize="13sp"
-                        android:background="@drawable/bg_category_unselected"
-                        android:layout_marginEnd="8dp" />
-
-                    <TextView
-                        android:id="@+id/catChampagne"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:paddingStart="18dp"
-                        android:paddingEnd="18dp"
-                        android:gravity="center"
-                        android:text="Champagne"
-                        android:textColor="#AAAAAA"
-                        android:textSize="13sp"
-                        android:background="@drawable/bg_category_unselected"
-                        android:layout_marginEnd="8dp" />
-
-                </LinearLayout>
-
-            </HorizontalScrollView>
-
-            <!-- GRID DE PRODUCTOS -->
-            <GridLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:columnCount="2"
-                android:rowCount="4"
-                android:alignmentMode="alignMargins"
-                android:columnOrderPreserved="false"
-                android:useDefaultMargins="true">
-
-                <!-- ===================== -->
-                <!-- MACALLAN 18 -->
-                <!-- ===================== -->
-                <LinearLayout
-                    android:id="@+id/cardMacallan"
-                    android:layout_width="0dp"
-                    android:layout_height="280dp"
-                    android:layout_columnWeight="1"
-                    android:orientation="vertical"
-                    android:padding="12dp"
-                    android:background="@drawable/bg_product_card"
-                    android:elevation="4dp">
-
-                    <ImageView
-                        android:id="@+id/imgMacallan"
-                        android:layout_width="match_parent"
-                        android:layout_height="110dp"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/macallan18"
-                        android:background="#111111"
-                        android:contentDescription="Macallan 18" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="Macallan 18"
-                        android:textColor="#FFFFFF"
-                        android:textStyle="bold"
-                        android:textSize="14sp"
-                        android:maxLines="1"
-                        android:ellipsize="end" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Sherry Oak"
-                        android:textColor="#888888"
-                        android:textSize="11sp"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="750ml · 43% ABV"
-                        android:textColor="#666666"
-                        android:textSize="10sp"
-                        android:layout_marginTop="2dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/precioMacallan"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="$399.99"
-                            android:textColor="#FF3B16"
-                            android:textStyle="bold"
-                            android:textSize="15sp" />
-
-                        <!-- BOTÓN + ESTILO MINIMALISTA -->
-                        <Button
-                            android:id="@+id/btnAgregarMacallan"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="@drawable/bg_plus_button_minimal"
-                            android:text="+"
-                            android:textColor="#FF3B16"
-                            android:textSize="18sp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:padding="0dp"
-                            android:gravity="center" />
-
-                    </LinearLayout>
-
-                    <!-- BOTÓN DESCRIPCIÓN ESTILO TEXTO -->
-                    <Button
-                        android:id="@+id/btnDescripcionMacallan"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:background="@drawable/bg_description_text"
-                        android:text="Descripción"
-                        android:textColor="#FF3B16"
-                        android:textSize="10sp"
-                        android:minHeight="0dp"
-                        android:minWidth="0dp"
-                        android:padding="4dp"
-                        android:textAllCaps="false" />
-
-                </LinearLayout>
-
-                <!-- ===================== -->
-                <!-- DON JULIO 70 -->
-                <!-- ===================== -->
-                <LinearLayout
-                    android:id="@+id/cardDonJulio"
-                    android:layout_width="0dp"
-                    android:layout_height="280dp"
-                    android:layout_columnWeight="1"
-                    android:orientation="vertical"
-                    android:padding="12dp"
-                    android:background="@drawable/bg_product_card"
-                    android:elevation="4dp">
-
-                    <ImageView
-                        android:id="@+id/imgDonJulio"
-                        android:layout_width="match_parent"
-                        android:layout_height="110dp"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/donjulio70"
-                        android:background="#111111"
-                        android:contentDescription="Don Julio 70" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="Don Julio 70"
-                        android:textColor="#FFFFFF"
-                        android:textStyle="bold"
-                        android:textSize="14sp"
-                        android:maxLines="1"
-                        android:ellipsize="end" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Añejo Claro"
-                        android:textColor="#888888"
-                        android:textSize="11sp"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="750ml · 40% ABV"
-                        android:textColor="#666666"
-                        android:textSize="10sp"
-                        android:layout_marginTop="2dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/precioDonJulio"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="$89.99"
-                            android:textColor="#FF3B16"
-                            android:textStyle="bold"
-                            android:textSize="15sp" />
-
-                        <Button
-                            android:id="@+id/btnAgregarDonJulio"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="@drawable/bg_plus_button_minimal"
-                            android:text="+"
-                            android:textColor="#FF3B16"
-                            android:textSize="18sp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:padding="0dp"
-                            android:gravity="center" />
-
-                    </LinearLayout>
-
-                    <Button
-                        android:id="@+id/btnDescripcionDonJulio"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:background="@drawable/bg_description_text"
-                        android:text="Descripción"
-                        android:textColor="#FF3B16"
-                        android:textSize="10sp"
-                        android:minHeight="0dp"
-                        android:minWidth="0dp"
-                        android:padding="4dp"
-                        android:textAllCaps="false" />
-
-                </LinearLayout>
-
-                <!-- ===================== -->
-                <!-- HENNESSY X.O -->
-                <!-- ===================== -->
-                <LinearLayout
-                    android:id="@+id/cardHennessy"
-                    android:layout_width="0dp"
-                    android:layout_height="280dp"
-                    android:layout_columnWeight="1"
-                    android:orientation="vertical"
-                    android:padding="12dp"
-                    android:background="@drawable/bg_product_card"
-                    android:elevation="4dp">
-
-                    <ImageView
-                        android:id="@+id/imgHennessy"
-                        android:layout_width="match_parent"
-                        android:layout_height="110dp"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/hennessyxo"
-                        android:background="#111111"
-                        android:contentDescription="Hennessy X.O" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="Hennessy X.O"
-                        android:textColor="#FFFFFF"
-                        android:textStyle="bold"
-                        android:textSize="14sp"
-                        android:maxLines="1"
-                        android:ellipsize="end" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Cognac"
-                        android:textColor="#888888"
-                        android:textSize="11sp"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="750ml · 40% ABV"
-                        android:textColor="#666666"
-                        android:textSize="10sp"
-                        android:layout_marginTop="2dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/precioHennessy"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="$299.99"
-                            android:textColor="#FF3B16"
-                            android:textStyle="bold"
-                            android:textSize="15sp" />
-
-                        <Button
-                            android:id="@+id/btnAgregarHennessy"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="@drawable/bg_plus_button_minimal"
-                            android:text="+"
-                            android:textColor="#FF3B16"
-                            android:textSize="18sp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:padding="0dp"
-                            android:gravity="center" />
-
-                    </LinearLayout>
-
-                    <Button
-                        android:id="@+id/btnDescripcionHennessy"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:background="@drawable/bg_description_text"
-                        android:text="Descripción"
-                        android:textColor="#FF3B16"
-                        android:textSize="10sp"
-                        android:minHeight="0dp"
-                        android:minWidth="0dp"
-                        android:padding="4dp"
-                        android:textAllCaps="false" />
-
-                </LinearLayout>
-
-                <!-- ===================== -->
-                <!-- GREY GOOSE -->
-                <!-- ===================== -->
-                <LinearLayout
-                    android:id="@+id/cardGreyGoose"
-                    android:layout_width="0dp"
-                    android:layout_height="280dp"
-                    android:layout_columnWeight="1"
-                    android:orientation="vertical"
-                    android:padding="12dp"
-                    android:background="@drawable/bg_product_card"
-                    android:elevation="4dp">
-
-                    <ImageView
-                        android:id="@+id/imgGreyGoose"
-                        android:layout_width="match_parent"
-                        android:layout_height="110dp"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/greygoose"
-                        android:background="#111111"
-                        android:contentDescription="Grey Goose" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="Grey Goose"
-                        android:textColor="#FFFFFF"
-                        android:textStyle="bold"
-                        android:textSize="14sp"
-                        android:maxLines="1"
-                        android:ellipsize="end" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Vodka"
-                        android:textColor="#888888"
-                        android:textSize="11sp"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="750ml · 40% ABV"
-                        android:textColor="#666666"
-                        android:textSize="10sp"
-                        android:layout_marginTop="2dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/precioGreyGoose"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="$34.99"
-                            android:textColor="#FF3B16"
-                            android:textStyle="bold"
-                            android:textSize="15sp" />
-
-                        <Button
-                            android:id="@+id/btnAgregarGreyGoose"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="@drawable/bg_plus_button_minimal"
-                            android:text="+"
-                            android:textColor="#FF3B16"
-                            android:textSize="18sp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:padding="0dp"
-                            android:gravity="center" />
-
-                    </LinearLayout>
-
-                    <Button
-                        android:id="@+id/btnDescripcionGreyGoose"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:background="@drawable/bg_description_text"
-                        android:text="Descripción"
-                        android:textColor="#FF3B16"
-                        android:textSize="10sp"
-                        android:minHeight="0dp"
-                        android:minWidth="0dp"
-                        android:padding="4dp"
-                        android:textAllCaps="false" />
-
-                </LinearLayout>
-
-                <!-- ===================== -->
-                <!-- CASAMIGOS -->
-                <!-- ===================== -->
-                <LinearLayout
-                    android:id="@+id/cardCasamigos"
-                    android:layout_width="0dp"
-                    android:layout_height="280dp"
-                    android:layout_columnWeight="1"
-                    android:orientation="vertical"
-                    android:padding="12dp"
-                    android:background="@drawable/bg_product_card"
-                    android:elevation="4dp">
-
-                    <ImageView
-                        android:id="@+id/imgCasamigos"
-                        android:layout_width="match_parent"
-                        android:layout_height="110dp"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/casamigos"
-                        android:background="#111111"
-                        android:contentDescription="Casamigos" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="Casamigos"
-                        android:textColor="#FFFFFF"
-                        android:textStyle="bold"
-                        android:textSize="14sp"
-                        android:maxLines="1"
-                        android:ellipsize="end" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Reposado"
-                        android:textColor="#888888"
-                        android:textSize="11sp"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="750ml · 40% ABV"
-                        android:textColor="#666666"
-                        android:textSize="10sp"
-                        android:layout_marginTop="2dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/precioCasamigos"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="$59.99"
-                            android:textColor="#FF3B16"
-                            android:textStyle="bold"
-                            android:textSize="15sp" />
-
-                        <Button
-                            android:id="@+id/btnAgregarCasamigos"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="@drawable/bg_plus_button_minimal"
-                            android:text="+"
-                            android:textColor="#FF3B16"
-                            android:textSize="18sp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:padding="0dp"
-                            android:gravity="center" />
-
-                    </LinearLayout>
-
-                    <Button
-                        android:id="@+id/btnDescripcionCasamigos"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:background="@drawable/bg_description_text"
-                        android:text="Descripción"
-                        android:textColor="#FF3B16"
-                        android:textSize="10sp"
-                        android:minHeight="0dp"
-                        android:minWidth="0dp"
-                        android:padding="4dp"
-                        android:textAllCaps="false" />
-
-                </LinearLayout>
-
-                <!-- ===================== -->
-                <!-- VEUVE CLICQUOT -->
-                <!-- ===================== -->
-                <LinearLayout
-                    android:id="@+id/cardVeuve"
-                    android:layout_width="0dp"
-                    android:layout_height="280dp"
-                    android:layout_columnWeight="1"
-                    android:orientation="vertical"
-                    android:padding="12dp"
-                    android:background="@drawable/bg_product_card"
-                    android:elevation="4dp">
-
-                    <ImageView
-                        android:id="@+id/imgVeuve"
-                        android:layout_width="match_parent"
-                        android:layout_height="110dp"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/veuveclicquot"
-                        android:background="#111111"
-                        android:contentDescription="Veuve Clicquot" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="Veuve Clicquot"
-                        android:textColor="#FFFFFF"
-                        android:textStyle="bold"
-                        android:textSize="14sp"
-                        android:maxLines="1"
-                        android:ellipsize="end" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Brut"
-                        android:textColor="#888888"
-                        android:textSize="11sp"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="750ml · 12% ABV"
-                        android:textColor="#666666"
-                        android:textSize="10sp"
-                        android:layout_marginTop="2dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/precioVeuve"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="$74.99"
-                            android:textColor="#FF3B16"
-                            android:textStyle="bold"
-                            android:textSize="15sp" />
-
-                        <Button
-                            android:id="@+id/btnAgregarVeuve"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="@drawable/bg_plus_button_minimal"
-                            android:text="+"
-                            android:textColor="#FF3B16"
-                            android:textSize="18sp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:padding="0dp"
-                            android:gravity="center" />
-
-                    </LinearLayout>
-
-                    <Button
-                        android:id="@+id/btnDescripcionVeuve"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:background="@drawable/bg_description_text"
-                        android:text="Descripción"
-                        android:textColor="#FF3B16"
-                        android:textSize="10sp"
-                        android:minHeight="0dp"
-                        android:minWidth="0dp"
-                        android:padding="4dp"
-                        android:textAllCaps="false" />
-
-                </LinearLayout>
-
-            </GridLayout>
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <TextView
+                android:id="@+id/catTodos"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_category_selected"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:gravity="center"
+                android:text="Todos"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/catWhisky"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_category_unselected"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:gravity="center"
+                android:text="Whisky"
+                android:textColor="#777777"
+                android:textSize="12sp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/catTequila"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_category_unselected"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:gravity="center"
+                android:text="Tequila"
+                android:textColor="#777777"
+                android:textSize="12sp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/catCognac"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_category_unselected"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:gravity="center"
+                android:text="Cognac"
+                android:textColor="#777777"
+                android:textSize="12sp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/catVodka"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_category_unselected"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:gravity="center"
+                android:text="Vodka"
+                android:textColor="#777777"
+                android:textSize="12sp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/catChampagne"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_category_unselected"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:gravity="center"
+                android:text="Champagne"
+                android:textColor="#777777"
+                android:textSize="12sp" />
 
         </LinearLayout>
 
-    </ScrollView>
+    </HorizontalScrollView>
+
+    <!-- RECYCLERVIEW -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewProductos"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="16dp"
+        android:nestedScrollingEnabled="true"
+        app:layout_constraintTop_toBottomOf="@id/catScroll"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

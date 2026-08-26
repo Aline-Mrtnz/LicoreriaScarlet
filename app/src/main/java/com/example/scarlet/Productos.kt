@@ -2,145 +2,134 @@ package com.example.scarlet
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.scarlet.adapter.ProductosAdapter
+import com.example.scarlet.data.model.Producto
+import com.example.scarlet.data.repository.ProductosRepository
 
 class Productos : AppCompatActivity() {
 
+    private lateinit var recyclerViewProductos: RecyclerView
+    private lateinit var adapter: ProductosAdapter
+    private lateinit var productosRepository: ProductosRepository
+    private lateinit var edtBuscar: EditText
+
+    private var categoriaActual: String = "Todos"
+
+    // Chips de categoría -> nombre de categoría que se envía al repositorio
+    private lateinit var chips: Map<Int, String>
+    private var chipSeleccionado: TextView? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_products)
 
-        ViewCompat.setOnApplyWindowInsetsListener(
-            findViewById(R.id.main)
-        ) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(
-                systemBars.left,
-                systemBars.top,
-                systemBars.right,
-                systemBars.bottom
-            )
-            insets
-        }
+        productosRepository = ProductosRepository(this)
 
-        // Configurar listeners para los botones de agregar
-        setupAddButtons()
+        configurarRecyclerView()
+        configurarCategorias()
+        configurarBusqueda()
+        configurarListeners()
 
-        // Configurar listeners para los botones de descripción
-        setupDescriptionButtons()
-
-        // Configurar buscador
-        setupSearch()
-
-        // Configurar menú lateral
-        setupMenu()
-
-        // Configurar categorías
-        setupCategories()
-
-        setupCarrito()
+        cargarProductos()
     }
 
-    private fun setupAddButtons() {
-        val productIds = listOf(
-            R.id.btnAgregarMacallan to "Macallan 18",
-            R.id.btnAgregarDonJulio to "Don Julio 70",
-            R.id.btnAgregarHennessy to "Hennessy X.O",
-            R.id.btnAgregarGreyGoose to "Grey Goose",
-            R.id.btnAgregarCasamigos to "Casamigos",
-            R.id.btnAgregarVeuve to "Veuve Clicquot"
-        )
+    private fun configurarRecyclerView() {
+        recyclerViewProductos = findViewById(R.id.recyclerViewProductos)
+        recyclerViewProductos.layoutManager = LinearLayoutManager(this)
 
-        productIds.forEach { (id, name) ->
-            findViewById<Button>(id).setOnClickListener {
-                Toast.makeText(this, "$name agregado al carrito", Toast.LENGTH_SHORT).show()
-            }
+        adapter = ProductosAdapter(emptyList()) { producto ->
+            Toast.makeText(this, "Seleccionado: ${producto.nombreProducto}", Toast.LENGTH_SHORT).show()
         }
-    }
-    private fun setupCarrito() {
-        val carritoIcon = findViewById<ImageView>(R.id.imgCarrito)
-        carritoIcon.setOnClickListener {
-            val intent = Intent(this, Shopping::class.java)
-            startActivity(intent)
-        }
-    }
-    private fun setupDescriptionButtons() {
-        val descMap = mapOf(
-            R.id.btnDescripcionMacallan to "Macallan 18 Sherry Oak\nUn whisky escocés espectacular con ricas notas de frutas secas, jengibre y especias de roble.",
-            R.id.btnDescripcionDonJulio to "Don Julio 70 Añejo Claro\nUn tequila suave con notas de vainilla, caramelo y roble tostado.",
-            R.id.btnDescripcionHennessy to "Hennessy X.O Cognac\nUn cognac premium con notas de frutas confitadas, chocolate y especias.",
-            R.id.btnDescripcionGreyGoose to "Grey Goose Vodka\nVodka premium francés elaborado con trigo de invierno y agua de manantial.",
-            R.id.btnDescripcionCasamigos to "Casamigos Reposado\nTequila reposado con notas de caramelo, chocolate y roble suave.",
-            R.id.btnDescripcionVeuve to "Veuve Clicquot Brut\nChampagne elegante con notas de manzana, pera y brioche."
-        )
 
-        descMap.forEach { (id, desc) ->
-            findViewById<Button>(id).setOnClickListener {
-                Toast.makeText(this, desc, Toast.LENGTH_LONG).show()
-            }
-        }
+        recyclerViewProductos.adapter = adapter
     }
 
-    private fun setupSearch() {
-        val searchEditText = findViewById<EditText>(R.id.edtBuscar)
-        searchEditText.setOnEditorActionListener { _, _, _ ->
-            val query = searchEditText.text.toString()
-            if (query.isNotEmpty()) {
-                Toast.makeText(this, "Buscando: $query", Toast.LENGTH_SHORT).show()
-            }
-            true
-        }
-    }
-
-    private fun setupMenu() {
-        val menuIcon = findViewById<ImageView>(R.id.imgMenu)
-        menuIcon.setOnClickListener {
-            Toast.makeText(this, "Menú lateral abierto", Toast.LENGTH_SHORT).show()
-            // Aquí puedes abrir un Navigation Drawer o un Dialog
-        }
-    }
-
-    private fun setupCategories() {
-        val categoryIds = listOf(
+    private fun configurarCategorias() {
+        chips = mapOf(
             R.id.catTodos to "Todos",
             R.id.catWhisky to "Whisky",
             R.id.catTequila to "Tequila",
             R.id.catCognac to "Cognac",
             R.id.catVodka to "Vodka",
-            R.id.catChampagne to "Champagne",
-            //R.id.catRon to "Ron",
-            //R.id.catGin to "Gin"
+            R.id.catChampagne to "Champagne"
         )
 
-        var selectedView: TextView? = findViewById(R.id.catTodos)
+        chipSeleccionado = findViewById(R.id.catTodos)
 
-        categoryIds.forEach { (id, name) ->
-            val view = findViewById<TextView>(id)
-            view.setOnClickListener {
-                // Resetear estilo del anterior seleccionado
-                selectedView?.apply {
-                    setBackgroundResource(R.drawable.bg_category_unselected)
-                    setTextColor(resources.getColor(android.R.color.darker_gray))
-                }
-
-                // Establecer nuevo seleccionado
-                view.apply {
-                    setBackgroundResource(R.drawable.bg_category_selected)
-                    setTextColor(resources.getColor(android.R.color.white))
-                }
-                selectedView = view
-
-                Toast.makeText(this, "Filtrando por: $name", Toast.LENGTH_SHORT).show()
+        chips.forEach { (id, nombreCategoria) ->
+            val chip = findViewById<TextView>(id)
+            chip.setOnClickListener {
+                seleccionarChip(chip)
+                categoriaActual = nombreCategoria
+                edtBuscar.text?.clear()
+                cargarProductos()
             }
+        }
+    }
+
+    private fun seleccionarChip(nuevoChip: TextView) {
+        chipSeleccionado?.apply {
+            setBackgroundResource(R.drawable.bg_category_unselected)
+            setTextColor(0xFF777777.toInt())
+        }
+        nuevoChip.apply {
+            setBackgroundResource(R.drawable.bg_category_selected)
+            setTextColor(0xFFFFFFFF.toInt())
+        }
+        chipSeleccionado = nuevoChip
+    }
+
+    private fun configurarBusqueda() {
+        edtBuscar = findViewById(R.id.edtBuscar)
+        edtBuscar.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val query = s?.toString().orEmpty().trim()
+                if (query.isEmpty()) {
+                    cargarProductos()
+                } else {
+                    try {
+                        val resultados = productosRepository.buscarProductos(query)
+                        adapter.actualizarProductos(resultados)
+                    } catch (e: Exception) {
+                        Toast.makeText(this@Productos, "Error al buscar: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun cargarProductos() {
+        try {
+            val productos: List<Producto> = if (categoriaActual == "Todos") {
+                productosRepository.obtenerTodosLosProductos()
+            } else {
+                productosRepository.obtenerProductosPorCategoria(categoriaActual)
+            }
+
+            adapter.actualizarProductos(productos)
+
+            if (productos.isEmpty()) {
+                Toast.makeText(this, "No hay productos disponibles", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error al cargar productos: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun configurarListeners() {
+        findViewById<ImageView>(R.id.imgCarrito).setOnClickListener {
+            startActivity(Intent(this, Shopping::class.java))
         }
     }
 }
