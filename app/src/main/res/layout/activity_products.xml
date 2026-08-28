@@ -56,13 +56,38 @@
 
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/imgCarrito"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:layout_marginEnd="12dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/carrito" />
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp">
+
+            <ImageView
+                android:id="@+id/imgCarrito"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/carrito" />
+
+            <TextView
+                android:id="@+id/tvCartBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|top"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="-6dp"
+                android:background="@drawable/circle_background"
+                android:backgroundTint="#FF2A00"
+                android:gravity="center"
+                android:minWidth="14dp"
+                android:minHeight="14dp"
+                android:paddingStart="3dp"
+                android:paddingEnd="3dp"
+                android:text="0"
+                android:textColor="#FFFFFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <ImageView
             android:id="@+id/imgNotification"

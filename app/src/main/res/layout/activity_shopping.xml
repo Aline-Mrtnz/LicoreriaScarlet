@@ -76,6 +76,19 @@
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
+            <!-- CARRITO VACÍO -->
+            <TextView
+                android:id="@+id/tvCarritoVacio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp"
+                android:gravity="center"
+                android:text="Tu carrito está vacío.\nAgrega productos desde el catálogo."
+                android:textColor="#777777"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
             <!-- CARRITO (RecyclerView) -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewCarrito"
@@ -126,10 +139,11 @@
                     android:layout_marginBottom="8dp">
 
                     <TextView
+                        android:id="@+id/tvSubtotalLabel"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Subtotal (3 items)"
+                        android:text="Subtotal (0 items)"
                         android:textColor="#888888"
                         android:textSize="13sp" />
 

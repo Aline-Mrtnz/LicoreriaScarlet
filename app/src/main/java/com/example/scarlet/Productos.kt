@@ -12,15 +12,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.scarlet.adapter.ProductosAdapter
+import com.example.scarlet.cart.CartManager
 import com.example.scarlet.data.model.Producto
 import com.example.scarlet.data.repository.ProductosRepository
 
 class Productos : AppCompatActivity() {
 
+    companion object {
+        const val EXTRA_CATEGORIA = "extra_categoria"
+    }
+
     private lateinit var recyclerViewProductos: RecyclerView
     private lateinit var adapter: ProductosAdapter
     private lateinit var productosRepository: ProductosRepository
     private lateinit var edtBuscar: EditText
+    private lateinit var tvCartBadge: TextView
 
     private var categoriaActual: String = "Todos"
 
@@ -28,18 +34,52 @@ class Productos : AppCompatActivity() {
     private lateinit var chips: Map<Int, String>
     private var chipSeleccionado: TextView? = null
 
+    private val cartListener: () -> Unit = { actualizarBadgeCarrito() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_products)
 
         productosRepository = ProductosRepository(this)
+        tvCartBadge = findViewById(R.id.tvCartBadge)
 
         configurarRecyclerView()
         configurarCategorias()
         configurarBusqueda()
         configurarListeners()
 
+        // Si venimos desde una categoría de la pantalla de Inicio, la preseleccionamos
+        val categoriaSolicitada = intent.getStringExtra(EXTRA_CATEGORIA)
+        if (!categoriaSolicitada.isNullOrBlank()) {
+            categoriaActual = categoriaSolicitada
+            val chipId = chips.entries.find { it.value == categoriaSolicitada }?.key
+            if (chipId != null) {
+                seleccionarChip(findViewById(chipId))
+            }
+        }
+
         cargarProductos()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        CartManager.agregarListener(cartListener)
+        actualizarBadgeCarrito()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        CartManager.quitarListener(cartListener)
+    }
+
+    private fun actualizarBadgeCarrito() {
+        val total = CartManager.totalItems()
+        if (total > 0) {
+            tvCartBadge.text = if (total > 99) "99+" else total.toString()
+            tvCartBadge.visibility = android.view.View.VISIBLE
+        } else {
+            tvCartBadge.visibility = android.view.View.GONE
+        }
     }
 
     private fun configurarRecyclerView() {
@@ -47,10 +87,24 @@ class Productos : AppCompatActivity() {
         recyclerViewProductos.layoutManager = LinearLayoutManager(this)
 
         adapter = ProductosAdapter(emptyList()) { producto ->
-            Toast.makeText(this, "Seleccionado: ${producto.nombreProducto}", Toast.LENGTH_SHORT).show()
+            agregarAlCarrito(producto)
         }
 
         recyclerViewProductos.adapter = adapter
+    }
+
+    private fun agregarAlCarrito(producto: Producto) {
+        when (CartManager.agregarProducto(producto)) {
+            CartManager.ResultadoAgregar.AGREGADO -> {
+                Toast.makeText(this, "${producto.nombreProducto} añadido al carrito", Toast.LENGTH_SHORT).show()
+            }
+            CartManager.ResultadoAgregar.SIN_STOCK -> {
+                Toast.makeText(this, "Sin stock disponible", Toast.LENGTH_SHORT).show()
+            }
+            CartManager.ResultadoAgregar.STOCK_MAXIMO -> {
+                Toast.makeText(this, "Alcanzaste el stock máximo disponible", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun configurarCategorias() {
@@ -120,7 +174,7 @@ class Productos : AppCompatActivity() {
             adapter.actualizarProductos(productos)
 
             if (productos.isEmpty()) {
-                Toast.makeText(this, "No hay productos disponibles", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "No hay productos disponibles en esta categoría", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             Toast.makeText(this, "Error al cargar productos: ${e.message}", Toast.LENGTH_SHORT).show()

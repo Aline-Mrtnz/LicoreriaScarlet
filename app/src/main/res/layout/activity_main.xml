@@ -94,15 +94,40 @@
             android:src="@drawable/scarlet" />
 
         <!-- CARRITO -->
-        <ImageView
-            android:id="@+id/imgCarrito"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginLeft="15dp"
             android:layout_marginEnd="4dp"
-            android:layout_marginRight="5dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/carrito" />
+            android:layout_marginRight="5dp">
+
+            <ImageView
+                android:id="@+id/imgCarrito"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/carrito" />
+
+            <TextView
+                android:id="@+id/tvCartBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|top"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="-6dp"
+                android:background="@drawable/circle_background"
+                android:backgroundTint="#FF2A00"
+                android:gravity="center"
+                android:minWidth="14dp"
+                android:minHeight="14dp"
+                android:paddingStart="3dp"
+                android:paddingEnd="3dp"
+                android:text="0"
+                android:textColor="#FFFFFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <!-- NOTIFICACION -->
         <ImageView
@@ -178,10 +203,11 @@
                                 android:textSize="7sp" />
 
                             <TextView
+                                android:id="@+id/txtVentasHoy"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
-                                android:text="$12,450"
+                                android:text="$0"
                                 android:textColor="#FFFFFF"
                                 android:textSize="13sp"
                                 android:textStyle="bold" />
@@ -213,10 +239,11 @@
                                 android:textSize="7sp" />
 
                             <TextView
+                                android:id="@+id/txtProductosActivos"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
-                                android:text="1,248"
+                                android:text="0"
                                 android:textColor="#FFFFFF"
                                 android:textSize="13sp"
                                 android:textStyle="bold" />
@@ -247,10 +274,11 @@
                                 android:textSize="7sp" />
 
                             <TextView
+                                android:id="@+id/txtStockBajo"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
-                                android:text="14 Alertas"
+                                android:text="0 Alertas"
                                 android:textColor="#FF2A00"
                                 android:textSize="11sp"
                                 android:textStyle="bold" />
@@ -305,10 +333,13 @@
 
                 <!-- WHISKY -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardCatWhisky"
                     android:layout_width="0dp"
                     android:layout_height="70dp"
                     android:layout_marginEnd="5dp"
                     android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
                     app:cardCornerRadius="8dp"
                     app:strokeWidth="0dp">
 
@@ -335,10 +366,13 @@
 
                 <!-- VINO -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardCatVino"
                     android:layout_width="0dp"
                     android:layout_height="70dp"
                     android:layout_marginStart="5dp"
                     android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
                     app:cardCornerRadius="8dp"
                     app:strokeWidth="0dp">
 
@@ -373,10 +407,13 @@
 
                 <!-- CERVEZA -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardCatCerveza"
                     android:layout_width="0dp"
                     android:layout_height="70dp"
                     android:layout_marginEnd="5dp"
                     android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
                     app:cardCornerRadius="8dp"
                     app:strokeWidth="0dp">
 
@@ -402,10 +439,13 @@
 
                 <!-- TEQUILA -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardCatTequila"
                     android:layout_width="0dp"
                     android:layout_height="70dp"
                     android:layout_marginStart="5dp"
                     android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
                     app:cardCornerRadius="8dp"
                     app:strokeWidth="0dp">
 

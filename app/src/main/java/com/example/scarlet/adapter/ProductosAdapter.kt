@@ -41,6 +41,7 @@ class ProductosAdapter(
         private val tvDescripcion: TextView = itemView.findViewById(R.id.tvDescripcionProducto)
         private val tvPrecio: TextView = itemView.findViewById(R.id.tvPrecioProducto)
         private val tvStock: TextView = itemView.findViewById(R.id.tvStockProducto)
+        private val imgAgregarCarrito: android.widget.ImageView = itemView.findViewById(R.id.imgAgregarCarrito)
 
         fun bind(producto: Producto) {
             tvNombre.text = producto.nombreProducto
@@ -49,6 +50,9 @@ class ProductosAdapter(
             tvStock.text = "Stock: ${producto.stock}"
 
             itemView.setOnClickListener {
+                onItemClick(producto)
+            }
+            imgAgregarCarrito.setOnClickListener {
                 onItemClick(producto)
             }
         }

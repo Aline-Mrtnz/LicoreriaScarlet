@@ -63,6 +63,18 @@
             android:paddingBottom="4dp"
             android:layout_marginStart="8dp" />
 
+        <ImageView
+            android:id="@+id/imgAgregarCarrito"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/circle_background"
+            android:backgroundTint="#FF2A00"
+            android:contentDescription="Agregar al carrito"
+            android:padding="6dp"
+            android:src="@drawable/carrito"
+            app:tint="#FFFFFF" />
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

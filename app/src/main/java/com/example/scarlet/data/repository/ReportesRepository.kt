@@ -6,7 +6,7 @@ import android.database.Cursor
 import com.example.scarlet.data.model.Reportes
 import com.example.scarlet.database.databasehelpers
 
-class ReportesRepository(context: Context) {
+class ReportesRepository(private val context: Context) {
 
     private val dbHelper = databasehelpers(context)
 
@@ -72,4 +72,46 @@ class ReportesRepository(context: Context) {
         fecha_generacion = cursor.getString(cursor.getColumnIndexOrThrow("fecha_generacion")),
         cuenta_id_cuenta = cursor.getInt(cursor.getColumnIndexOrThrow("cuenta_id_cuenta"))
     )
+
+    /**
+     * Productos más vendidos (por cantidad) entre dos fechas, listos para
+     * la sección "Top Productos" de la pantalla de Reportes.
+     */
+    fun topProductos(desde: String, hasta: String, limite: Int = 5): List<com.example.scarlet.data.model.TopProducto> {
+        val lista = mutableListOf<com.example.scarlet.data.model.TopProducto>()
+        val db = dbHelper.readableDatabase
+        val query = """
+            SELECT p.nombre_producto, p.precio_venta, p.imagen,
+                   COALESCE(c.nombre_categoria, 'Sin categoría') AS nombre_categoria,
+                   SUM(d.cantidad) AS total_vendidos
+            FROM detalle_venta d
+            INNER JOIN ventas v ON d.id_venta = v.id_venta
+            INNER JOIN productos p ON d.id_producto = p.id_producto
+            LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+            WHERE v.fecha_venta BETWEEN ? AND ?
+            GROUP BY p.id_producto
+            ORDER BY total_vendidos DESC
+            LIMIT ?
+        """.trimIndent()
+
+        val cursor = db.rawQuery(query, arrayOf(desde, hasta, limite.toString()))
+        if (cursor.moveToFirst()) {
+            do {
+                val nombreImagen = cursor.getString(cursor.getColumnIndexOrThrow("imagen"))
+                val resId = com.example.scarlet.util.ImagenUtils.resolver(context, nombreImagen)
+                lista.add(
+                    com.example.scarlet.data.model.TopProducto(
+                        nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre_producto")),
+                        categoria = cursor.getString(cursor.getColumnIndexOrThrow("nombre_categoria")),
+                        precio = cursor.getDouble(cursor.getColumnIndexOrThrow("precio_venta")),
+                        vendidos = cursor.getInt(cursor.getColumnIndexOrThrow("total_vendidos")),
+                        imagenResId = resId
+                    )
+                )
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return lista
+    }
 }

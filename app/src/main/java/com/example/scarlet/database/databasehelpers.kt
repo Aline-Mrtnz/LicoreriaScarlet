@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteException
 import android.util.Log
 
 class databasehelpers(context: Context) :
-    SQLiteOpenHelper(context, "LicoreriaScarlet.db", null, 3) {  // Versión 3 para nueva estructura
+    SQLiteOpenHelper(context, "LicoreriaScarlet.db", null, 4) {  // Versión 4: corrige tabla pagos y datos por defecto
 
     companion object {
         private const val TAG = "DatabaseHelper"
@@ -218,6 +218,9 @@ class databasehelpers(context: Context) :
                 // 8. Insertar Productos Reales
                 insertarProductosReales(db, categoriasIds, marcasIds)
 
+                // 9. Insertar Cliente Mostrador (venta rápida / walk-in)
+                insertarClienteMostrador(db)
+
                 db.setTransactionSuccessful()
                 Log.d(TAG, "Datos por defecto insertados correctamente")
             } finally {
@@ -263,6 +266,20 @@ class databasehelpers(context: Context) :
             put("apellidos", "Pérez Rodríguez")
             put("ci", "123456789")
             put("telefono", "78945612")
+        }
+        return db.insert("persona", null, values)
+    }
+
+    // Cliente genérico usado para ventas de mostrador (walk-in) cuando no se
+    // registra un cliente específico. Se identifica por su CI fijo "00000000"
+    // para poder ubicarlo desde el resto de la app sin guardar su id en ningún
+    // lado (ver PersonaRepository.obtenerClienteMostrador()).
+    private fun insertarClienteMostrador(db: SQLiteDatabase): Long {
+        val values = ContentValues().apply {
+            put("nombres", "Cliente")
+            put("apellidos", "Mostrador")
+            put("ci", "00000000")
+            put("telefono", "")
         }
         return db.insert("persona", null, values)
     }
@@ -351,7 +368,28 @@ class databasehelpers(context: Context) :
             MarcaData("Havana Club", "Ron cubano auténtico", "Cuba", "ic_havana_club"),
             MarcaData("Zacapa", "Ron guatemalteco premium", "Guatemala", "ic_zacapa"),
             MarcaData("Bombay Sapphire", "Gin inglés con botánicos exóticos", "Inglaterra", "ic_bombay"),
-            MarcaData("Tanqueray", "Gin inglés de alta calidad", "Inglaterra", "ic_tanqueray")
+            MarcaData("Tanqueray", "Gin inglés de alta calidad", "Inglaterra", "ic_tanqueray"),
+            // NOTA: las marcas de abajo faltaban en el set original. Sin ellas,
+            // TODOS los productos de Whisky, Tequila, Vino, Cognac, Vodka y
+            // Champagne quedaban asignados por defecto a "Bacardi" (id 1), ya
+            // que su marca real no existía en esta tabla.
+            MarcaData("Macallan", "Whisky escocés de malta premium", "Escocia", "ic_macallan"),
+            MarcaData("Johnnie Walker", "Whisky escocés blended de referencia mundial", "Escocia", "ic_johnnie_walker"),
+            MarcaData("Jack Daniel's", "Whisky americano de Tennessee", "Estados Unidos", "ic_jack_daniels"),
+            MarcaData("Jameson", "Whisky irlandés triple destilado", "Irlanda", "ic_jameson"),
+            MarcaData("Clase Azul", "Tequila artesanal mexicano premium", "México", "ic_clase_azul"),
+            MarcaData("Don Julio", "Tequila mexicano de alta gama", "México", "ic_don_julio"),
+            MarcaData("Patrón", "Tequila mexicano ultra premium", "México", "ic_patron"),
+            MarcaData("Casillero del Diablo", "Vino chileno de gran tradición", "Chile", "ic_casillero"),
+            MarcaData("Concha y Toro", "Vino chileno, una de las bodegas más grandes del mundo", "Chile", "ic_concha_y_toro"),
+            MarcaData("Santa Rita", "Vino chileno de larga tradición", "Chile", "ic_santa_rita"),
+            MarcaData("Hennessy", "Cognac francés de referencia mundial", "Francia", "ic_hennessy"),
+            MarcaData("Rémy Martin", "Cognac francés de alta gama", "Francia", "ic_remy_martin"),
+            MarcaData("Grey Goose", "Vodka francés premium", "Francia", "ic_grey_goose"),
+            MarcaData("Absolut", "Vodka sueco de fama mundial", "Suecia", "ic_absolut"),
+            MarcaData("Belvedere", "Vodka polaco ultra premium", "Polonia", "ic_belvedere"),
+            MarcaData("Veuve Clicquot", "Champagne francés de gran prestigio", "Francia", "ic_veuve_clicquot"),
+            MarcaData("Moët & Chandon", "Champagne francés icónico", "Francia", "ic_moet")
         )
 
         // CORRECCIÓN 2: Iterar correctamente

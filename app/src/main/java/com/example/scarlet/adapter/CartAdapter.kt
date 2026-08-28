@@ -9,18 +9,21 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.scarlet.R
+import com.example.scarlet.cart.CartManager
 import com.example.scarlet.data.model.CartItem
+import com.example.scarlet.util.ImagenUtils
 import java.text.NumberFormat
 import java.util.Locale
 
 /**
  * Adaptador de RecyclerView para el carrito de compras (pantalla Shopping).
- * Permite subir/bajar la cantidad de cada producto y notifica los cambios
- * mediante [onCantidadCambiada] para que la Activity recalcule el resumen.
+ * Los cambios de cantidad/eliminación se aplican siempre a través de
+ * [CartManager] (fuente única de verdad del carrito) y luego se notifica a
+ * través de [onCambio] para que la Activity refresque el resumen y la lista.
  */
 class CartAdapter(
     private val items: MutableList<CartItem>,
-    private val onCantidadCambiada: () -> Unit
+    private val onCambio: () -> Unit
 ) : RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
 
     private val format = NumberFormat.getCurrencyInstance(Locale.US)
@@ -47,33 +50,38 @@ class CartAdapter(
         private val btnSumar: Button = itemView.findViewById(R.id.btnSumarCart)
 
         fun bind(item: CartItem) {
-            imgProducto.setImageResource(item.imagenResId)
+            imgProducto.setImageResource(ImagenUtils.resolver(itemView.context, item.imagenNombre))
             tvNombre.text = item.nombre
             tvCategoria.text = item.categoria
             tvCantidad.text = item.cantidad.toString()
-            actualizarPrecio(item)
+            tvPrecio.text = format.format(item.subtotal)
 
             btnRestar.setOnClickListener {
                 if (item.cantidad > 1) {
-                    item.cantidad -= 1
-                    tvCantidad.text = item.cantidad.toString()
-                    actualizarPrecio(item)
-                    onCantidadCambiada()
+                    CartManager.actualizarCantidad(item, item.cantidad - 1)
                 } else {
-                    Toast.makeText(itemView.context, "La cantidad mínima es 1", Toast.LENGTH_SHORT).show()
+                    // Bajar de 1 elimina el producto del carrito
+                    CartManager.quitarItem(item)
+                    Toast.makeText(itemView.context, "${item.nombre} eliminado del carrito", Toast.LENGTH_SHORT).show()
                 }
+                onCambio()
             }
 
             btnSumar.setOnClickListener {
-                item.cantidad += 1
-                tvCantidad.text = item.cantidad.toString()
-                actualizarPrecio(item)
-                onCantidadCambiada()
+                if (item.cantidad >= item.stockDisponible) {
+                    Toast.makeText(itemView.context, "No hay más stock disponible", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                CartManager.actualizarCantidad(item, item.cantidad + 1)
+                onCambio()
             }
-        }
 
-        private fun actualizarPrecio(item: CartItem) {
-            tvPrecio.text = format.format(item.subtotal)
+            itemView.setOnLongClickListener {
+                CartManager.quitarItem(item)
+                Toast.makeText(itemView.context, "${item.nombre} eliminado del carrito", Toast.LENGTH_SHORT).show()
+                onCambio()
+                true
+            }
         }
     }
 }

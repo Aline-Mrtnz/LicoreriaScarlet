@@ -451,6 +451,84 @@ class ProductosRepository(private val context: Context) {
     }
 
     /**
+     * Crea un nuevo producto. Devuelve el id generado, o -1 si falla.
+     */
+    fun crearProducto(producto: Producto): Long {
+        val db = dbHelper.writableDatabase
+        try {
+            val values = android.content.ContentValues().apply {
+                put("nombre_producto", producto.nombreProducto)
+                put("descripcion", producto.descripcion)
+                put("imagen", producto.imagen)
+                put("precio_venta", producto.precioVenta)
+                put("precio_mayor", producto.precioMayor)
+                put("precio_compra", producto.precioCompra)
+                put("stock", producto.stock)
+                put("stock_minimo", producto.stockMinimo)
+                put("estado", producto.estado)
+                put("id_categoria", producto.idCategoria)
+                put("marcas_id_marca", producto.marcasIdMarca)
+            }
+            return db.insert("productos", null, values)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return -1
+        } finally {
+            db.close()
+        }
+    }
+
+    /**
+     * Edita un producto existente.
+     */
+    fun editarProducto(producto: Producto): Boolean {
+        val db = dbHelper.writableDatabase
+        try {
+            val values = android.content.ContentValues().apply {
+                put("nombre_producto", producto.nombreProducto)
+                put("descripcion", producto.descripcion)
+                put("imagen", producto.imagen)
+                put("precio_venta", producto.precioVenta)
+                put("precio_mayor", producto.precioMayor)
+                put("precio_compra", producto.precioCompra)
+                put("stock", producto.stock)
+                put("stock_minimo", producto.stockMinimo)
+                put("estado", producto.estado)
+                put("id_categoria", producto.idCategoria)
+                put("marcas_id_marca", producto.marcasIdMarca)
+            }
+            val filas = db.update("productos", values, "id_producto = ?", arrayOf(producto.idProducto.toString()))
+            return filas > 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        } finally {
+            db.close()
+        }
+    }
+
+    /**
+     * "Elimina" un producto. En vez de borrarlo físicamente (lo que
+     * rompería el historial de ventas que lo referencian), lo marca como
+     * INACTIVO para que deje de aparecer en los listados.
+     */
+    fun eliminarProducto(idProducto: Int): Boolean {
+        val db = dbHelper.writableDatabase
+        try {
+            val values = android.content.ContentValues().apply {
+                put("estado", "INACTIVO")
+            }
+            val filas = db.update("productos", values, "id_producto = ?", arrayOf(idProducto.toString()))
+            return filas > 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        } finally {
+            db.close()
+        }
+    }
+
+    /**
      * Extrae un objeto Producto del cursor
      */
     private fun extraerProductoDeCursor(cursor: Cursor): Producto {

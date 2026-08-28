@@ -1,10 +1,12 @@
 package com.example.scarlet
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -12,7 +14,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.scarlet.adapter.CartAdapter
-import com.example.scarlet.data.model.CartItem
+import com.example.scarlet.cart.CartManager
+import com.example.scarlet.data.repository.CuentaRepository
+import com.example.scarlet.data.repository.PagosRepository
+import com.example.scarlet.data.repository.PersonaRepository
+import com.example.scarlet.data.repository.VentasRepository
+import com.example.scarlet.util.FechaUtils
+import com.example.scarlet.util.Session
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.text.NumberFormat
 import java.util.Locale
@@ -22,31 +30,22 @@ class Shopping : AppCompatActivity() {
     private lateinit var recyclerViewCarrito: RecyclerView
     private lateinit var adapter: CartAdapter
 
-    // Carrito de ejemplo. En una integración real esto vendría de un
-    // repositorio/CartManager compartido con la pantalla de Productos.
-    private val carrito = mutableListOf(
-        CartItem(
-            idProducto = 1,
-            nombre = "Macallan 18 Years",
-            categoria = "SINGLE MALT SCOTCH",
-            precioUnitario = 450.00,
-            imagenResId = R.drawable.macallan18,
-            cantidad = 1
-        ),
-        CartItem(
-            idProducto = 2,
-            nombre = "Hennessy X.O",
-            categoria = "COGNAC",
-            precioUnitario = 280.00,
-            imagenResId = R.drawable.hennessyxo,
-            cantidad = 2
-        )
-    )
+    private lateinit var ventasRepository: VentasRepository
+    private lateinit var pagosRepository: PagosRepository
+    private lateinit var personaRepository: PersonaRepository
+    private lateinit var cuentaRepository: CuentaRepository
+
+    // El carrito vive en CartManager (compartido con Inicio/Productos), así
+    // que aquí solo mantenemos una referencia a esa misma lista.
+    private val carrito get() = CartManager.obtenerItems()
 
     // TextViews del resumen
     private lateinit var txtSubtotal: TextView
     private lateinit var txtImpuestos: TextView
     private lateinit var txtTotal: TextView
+    private lateinit var tvSubtotalLabel: TextView
+    private lateinit var tvCarritoVacio: TextView
+    private lateinit var btnCheckout: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,10 +65,18 @@ class Shopping : AppCompatActivity() {
             insets
         }
 
+        ventasRepository = VentasRepository(this)
+        pagosRepository = PagosRepository(this)
+        personaRepository = PersonaRepository(this)
+        cuentaRepository = CuentaRepository(this)
+
         // Inicializar TextViews del resumen
         txtSubtotal = findViewById(R.id.txtSubtotal)
         txtImpuestos = findViewById(R.id.txtImpuestos)
         txtTotal = findViewById(R.id.txtTotal)
+        tvSubtotalLabel = findViewById(R.id.tvSubtotalLabel)
+        tvCarritoVacio = findViewById(R.id.tvCarritoVacio)
+        btnCheckout = findViewById(R.id.btnFinalizarCompra)
 
         // Configurar RecyclerView del carrito
         configurarRecyclerView()
@@ -87,7 +94,15 @@ class Shopping : AppCompatActivity() {
         setupBottomNavigation()
 
         // Actualizar resumen inicial
-        updateSummary()
+        actualizarVista()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Si el usuario agregó productos en otra pantalla y vuelve aquí,
+        // refrescamos la lista y el resumen.
+        adapter.notifyDataSetChanged()
+        actualizarVista()
     }
 
     private fun configurarRecyclerView() {
@@ -96,11 +111,21 @@ class Shopping : AppCompatActivity() {
         recyclerViewCarrito.isNestedScrollingEnabled = false
 
         adapter = CartAdapter(carrito) {
-            // Se llama cada vez que el usuario cambia una cantidad
-            updateSummary()
+            // Se llama cada vez que el usuario cambia una cantidad o elimina un producto
+            adapter.notifyDataSetChanged()
+            actualizarVista()
         }
 
         recyclerViewCarrito.adapter = adapter
+    }
+
+    private fun actualizarVista() {
+        val estaVacio = carrito.isEmpty()
+        tvCarritoVacio.visibility = if (estaVacio) android.view.View.VISIBLE else android.view.View.GONE
+        recyclerViewCarrito.visibility = if (estaVacio) android.view.View.GONE else android.view.View.VISIBLE
+        btnCheckout.isEnabled = !estaVacio
+        btnCheckout.alpha = if (estaVacio) 0.5f else 1f
+        updateSummary()
     }
 
     private fun updateSummary() {
@@ -118,8 +143,8 @@ class Shopping : AppCompatActivity() {
         txtImpuestos.text = formatPrice(impuestos)
         txtTotal.text = formatPrice(total)
 
-        // Nota: El texto "Subtotal (N items)" está fijo en el XML.
-        // val totalItems = carrito.sumOf { it.cantidad }
+        val totalItems = carrito.sumOf { it.cantidad }
+        tvSubtotalLabel.text = "Subtotal ($totalItems items)"
     }
 
     private fun formatPrice(amount: Double): String {
@@ -143,16 +168,70 @@ class Shopping : AppCompatActivity() {
     }
 
     private fun setupCheckoutButton() {
-        val btnCheckout = findViewById<Button>(R.id.btnFinalizarCompra)
         btnCheckout.setOnClickListener {
-            // Ir a la ventana de Sales
-            val intent = Intent(this, Ventas::class.java)
-            // Enviar datos del carrito
-            intent.putExtra("subtotal", txtSubtotal.text.toString())
-            intent.putExtra("impuestos", txtImpuestos.text.toString())
-            intent.putExtra("total", txtTotal.text.toString())
-            intent.putExtra("items", carrito.sumOf { it.cantidad })
-            startActivity(intent)
+            if (carrito.isEmpty()) {
+                Toast.makeText(this, "Tu carrito está vacío", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            mostrarDialogoMetodoPago()
+        }
+    }
+
+    private fun mostrarDialogoMetodoPago() {
+        val metodosPago = pagosRepository.listar()
+        if (metodosPago.isEmpty()) {
+            Toast.makeText(this, "No hay métodos de pago configurados", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val nombres = metodosPago.map { it.tipo_pago }.toTypedArray()
+
+        AlertDialog.Builder(this)
+            .setTitle("Selecciona un método de pago")
+            .setItems(nombres) { _, indice ->
+                val pagoSeleccionado = metodosPago[indice]
+                registrarVenta(pagoSeleccionado.id_pago)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun registrarVenta(idPago: Int) {
+        val idCliente = personaRepository.obtenerOCrearClienteMostrador()
+        val idCuenta = if (Session.estaLogueado) {
+            Session.idCuenta
+        } else {
+            cuentaRepository.obtenerUsuarioActual()?.idCuenta ?: 1
+        }
+
+        val resultado = ventasRepository.registrarVentaCompleta(
+            fecha = FechaUtils.ahora(),
+            idCliente = idCliente,
+            idPago = idPago,
+            idCuenta = idCuenta,
+            items = carrito
+        )
+
+        when (resultado) {
+            is VentasRepository.ResultadoVenta.Exito -> {
+                CartManager.limpiar()
+                adapter.notifyDataSetChanged()
+                actualizarVista()
+                Toast.makeText(this, "¡Venta registrada correctamente!", Toast.LENGTH_LONG).show()
+                val intent = Intent(this, Ventas::class.java)
+                startActivity(intent)
+                finish()
+            }
+            is VentasRepository.ResultadoVenta.SinStock -> {
+                Toast.makeText(
+                    this,
+                    "Stock insuficiente para ${resultado.nombreProducto}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            is VentasRepository.ResultadoVenta.Error -> {
+                Toast.makeText(this, "Error al registrar la venta: ${resultado.mensaje}", Toast.LENGTH_LONG).show()
+            }
         }
     }
 

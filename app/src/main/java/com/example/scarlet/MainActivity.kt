@@ -1,9 +1,14 @@
 package com.example.scarlet
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -13,11 +18,21 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.scarlet.adapter.ProductosAdapter
+import com.example.scarlet.cart.CartManager
+import com.example.scarlet.data.model.Categorias
+import com.example.scarlet.data.model.Marcas
 import com.example.scarlet.data.model.Producto
+import com.example.scarlet.data.repository.CategoriasRepository
 import com.example.scarlet.data.repository.CuentaRepository
+import com.example.scarlet.data.repository.MarcasRepository
 import com.example.scarlet.data.repository.ProductosRepository
+import com.example.scarlet.data.repository.VentasRepository
+import com.example.scarlet.util.FechaUtils
+import com.example.scarlet.util.Session
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.text.NumberFormat
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,9 +40,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: ProductosAdapter
     private lateinit var productosRepository: ProductosRepository
     private lateinit var cuentaRepository: CuentaRepository
+    private lateinit var ventasRepository: VentasRepository
     private var listaProductos = mutableListOf<Producto>()
 
     private lateinit var bottomNavigation: BottomNavigationView
+    private lateinit var tvCartBadge: TextView
+
+    private val cartListener: () -> Unit = { actualizarBadgeCarrito() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -100,6 +119,8 @@ class MainActivity : AppCompatActivity() {
         // Inicializar repositorios
         productosRepository = ProductosRepository(this)
         cuentaRepository = CuentaRepository(this)
+        ventasRepository = VentasRepository(this)
+        tvCartBadge = findViewById(R.id.tvCartBadge)
 
         // Cargar información del usuario en el header
         cargarInformacionUsuario()
@@ -109,6 +130,9 @@ class MainActivity : AppCompatActivity() {
 
         // Cargar productos desde la base de datos
         cargarProductos()
+
+        // Cargar tarjetas de estadísticas (ventas de hoy, productos, stock bajo)
+        cargarEstadisticas()
 
         // Configurar listeners de header / FAB / categorías
         configurarListeners()
@@ -169,19 +193,45 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        CartManager.agregarListener(cartListener)
+        actualizarBadgeCarrito()
+        cargarEstadisticas()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        CartManager.quitarListener(cartListener)
+    }
+
+    private fun actualizarBadgeCarrito() {
+        val total = CartManager.totalItems()
+        if (total > 0) {
+            tvCartBadge.text = if (total > 99) "99+" else total.toString()
+            tvCartBadge.visibility = android.view.View.VISIBLE
+        } else {
+            tvCartBadge.visibility = android.view.View.GONE
+        }
+    }
+
     private fun cargarInformacionUsuario() {
         val txtNombre = findViewById<TextView>(R.id.txtNombre)
         val txtRol = findViewById<TextView>(R.id.txtRol)
 
         try {
-            val usuarioInfo = cuentaRepository.obtenerUsuarioActual()
-
-            if (usuarioInfo != null) {
-                txtNombre.text = "${usuarioInfo.nombres} ${usuarioInfo.apellidos}"
-                txtRol.text = "●  ${usuarioInfo.nombreRol}"
+            if (Session.estaLogueado) {
+                txtNombre.text = Session.nombreCompleto
+                txtRol.text = "●  ${Session.rol}"
             } else {
-                txtNombre.text = "Admin Sistema"
-                txtRol.text = "●  Administrador"
+                val actual = cuentaRepository.obtenerUsuarioActual()
+                if (actual != null) {
+                    txtNombre.text = "${actual.nombres} ${actual.apellidos}"
+                    txtRol.text = "●  ${actual.nombreRol}"
+                } else {
+                    txtNombre.text = "Admin Sistema"
+                    txtRol.text = "●  Administrador"
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -190,19 +240,44 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun cargarEstadisticas() {
+        try {
+            val (desde, hasta) = FechaUtils.rangoParaFiltro("Día")
+            val totalHoy = ventasRepository.totalEntreFechas(desde, hasta)
+            val formato = NumberFormat.getCurrencyInstance(Locale.US)
+            findViewById<TextView>(R.id.txtVentasHoy).text = formato.format(totalHoy)
+
+            val stats = productosRepository.obtenerEstadisticasProductos()
+            findViewById<TextView>(R.id.txtProductosActivos).text = (stats["total"] ?: 0).toString()
+            findViewById<TextView>(R.id.txtStockBajo).text = "${stats["stock_bajo"] ?: 0} Alertas"
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     private fun configurarRecyclerView() {
         recyclerViewProductos = findViewById(R.id.recyclerViewProductos)
         recyclerViewProductos.layoutManager = LinearLayoutManager(this)
 
         adapter = ProductosAdapter(listaProductos) { producto ->
-            Toast.makeText(
-                this,
-                "Seleccionado: ${producto.nombreProducto}",
-                Toast.LENGTH_SHORT
-            ).show()
+            agregarAlCarrito(producto)
         }
 
         recyclerViewProductos.adapter = adapter
+    }
+
+    private fun agregarAlCarrito(producto: Producto) {
+        when (CartManager.agregarProducto(producto)) {
+            CartManager.ResultadoAgregar.AGREGADO -> {
+                Toast.makeText(this, "${producto.nombreProducto} añadido al carrito", Toast.LENGTH_SHORT).show()
+            }
+            CartManager.ResultadoAgregar.SIN_STOCK -> {
+                Toast.makeText(this, "Sin stock disponible", Toast.LENGTH_SHORT).show()
+            }
+            CartManager.ResultadoAgregar.STOCK_MAXIMO -> {
+                Toast.makeText(this, "Alcanzaste el stock máximo disponible", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun cargarProductos() {
@@ -223,7 +298,7 @@ class MainActivity : AppCompatActivity() {
     private fun configurarListeners() {
         val fabAdd = findViewById<FloatingActionButton>(R.id.fabAdd)
         fabAdd.setOnClickListener {
-            Toast.makeText(this, "Agregar nuevo producto", Toast.LENGTH_SHORT).show()
+            mostrarDialogoNuevoProducto()
         }
 
         val verCategorias = findViewById<TextView>(R.id.idVerCategorias)
@@ -238,8 +313,135 @@ class MainActivity : AppCompatActivity() {
 
         val imgPerfil = findViewById<ImageView>(R.id.imgPerfil)
         imgPerfil.setOnClickListener {
-            Toast.makeText(this, "Perfil de usuario", Toast.LENGTH_SHORT).show()
+            mostrarDialogoPerfil()
         }
+
+        findViewById<android.view.View>(R.id.cardCatWhisky).setOnClickListener { abrirCategoria("Whisky") }
+        findViewById<android.view.View>(R.id.cardCatVino).setOnClickListener { abrirCategoria("Vino") }
+        findViewById<android.view.View>(R.id.cardCatCerveza).setOnClickListener { abrirCategoria("Cerveza") }
+        findViewById<android.view.View>(R.id.cardCatTequila).setOnClickListener { abrirCategoria("Tequila") }
+    }
+
+    private fun abrirCategoria(nombreCategoria: String) {
+        val intent = Intent(this, Productos::class.java)
+        intent.putExtra(Productos.EXTRA_CATEGORIA, nombreCategoria)
+        startActivity(intent)
+    }
+
+    private fun mostrarDialogoPerfil() {
+        val nombre = if (Session.estaLogueado) Session.nombreCompleto else "Admin Sistema"
+        val rol = if (Session.estaLogueado) Session.rol else "Administrador"
+
+        AlertDialog.Builder(this)
+            .setTitle(nombre)
+            .setMessage("Rol: $rol")
+            .setPositiveButton("Cerrar sesión") { _, _ ->
+                Session.cerrar()
+                CartManager.limpiar()
+                val intent = Intent(this, Login::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    /**
+     * Formulario rápido para dar de alta un producto nuevo directamente
+     * desde la pantalla de Inicio (botón "+").
+     */
+    private fun mostrarDialogoNuevoProducto() {
+        val categoriasRepository = CategoriasRepository(this)
+        val marcasRepository = MarcasRepository(this)
+        val categorias: List<Categorias> = categoriasRepository.listar()
+        val marcas: List<Marcas> = marcasRepository.listar()
+
+        if (categorias.isEmpty() || marcas.isEmpty()) {
+            Toast.makeText(this, "Primero deben existir categorías y marcas", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val padding = (16 * resources.displayMetrics.density).toInt()
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(padding, padding, padding, padding)
+        }
+
+        val edtNombre = EditText(this).apply { hint = "Nombre del producto" }
+        val edtDescripcion = EditText(this).apply { hint = "Descripción (opcional)" }
+        val edtPrecio = EditText(this).apply {
+            hint = "Precio de venta"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+        }
+        val edtStock = EditText(this).apply {
+            hint = "Stock inicial"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+        }
+
+        val spinnerCategoria = Spinner(this).apply {
+            adapter = ArrayAdapter(
+                this@MainActivity,
+                android.R.layout.simple_spinner_dropdown_item,
+                categorias.map { it.nombre_categoria }
+            )
+        }
+        val spinnerMarca = Spinner(this).apply {
+            adapter = ArrayAdapter(
+                this@MainActivity,
+                android.R.layout.simple_spinner_dropdown_item,
+                marcas.map { it.nombre_marca }
+            )
+        }
+
+        listOf(edtNombre, edtDescripcion, edtPrecio, edtStock).forEach { layout.addView(it) }
+        layout.addView(TextView(this).apply { text = "Categoría" })
+        layout.addView(spinnerCategoria)
+        layout.addView(TextView(this).apply { text = "Marca" })
+        layout.addView(spinnerMarca)
+
+        AlertDialog.Builder(this)
+            .setTitle("Nuevo producto")
+            .setView(layout)
+            .setPositiveButton("Guardar") { _, _ ->
+                val nombre = edtNombre.text.toString().trim()
+                val precio = edtPrecio.text.toString().trim().toDoubleOrNull()
+                val stock = edtStock.text.toString().trim().toIntOrNull()
+
+                if (nombre.isEmpty() || precio == null || stock == null) {
+                    Toast.makeText(this, "Completa nombre, precio y stock correctamente", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+
+                val categoria = categorias[spinnerCategoria.selectedItemPosition]
+                val marca = marcas[spinnerMarca.selectedItemPosition]
+
+                val nuevoProducto = Producto(
+                    idProducto = 0,
+                    nombreProducto = nombre,
+                    descripcion = edtDescripcion.text.toString().trim().ifEmpty { null },
+                    imagen = null,
+                    precioVenta = precio,
+                    precioMayor = null,
+                    precioCompra = null,
+                    stock = stock,
+                    stockMinimo = 5,
+                    estado = "ACTIVO",
+                    idCategoria = categoria.id_categoria,
+                    marcasIdMarca = marca.id_marca
+                )
+
+                val id = productosRepository.crearProducto(nuevoProducto)
+                if (id > 0) {
+                    Toast.makeText(this, "Producto agregado correctamente", Toast.LENGTH_SHORT).show()
+                    cargarProductos()
+                    cargarEstadisticas()
+                } else {
+                    Toast.makeText(this, "No se pudo guardar el producto", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     fun recargarProductos() {

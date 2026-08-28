@@ -2,6 +2,7 @@ package com.example.scarlet
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -10,36 +11,26 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.scarlet.adapter.TopProductosAdapter
-import com.example.scarlet.data.model.TopProducto
+import com.example.scarlet.data.repository.ReportesRepository
+import com.example.scarlet.data.repository.VentasRepository
+import com.example.scarlet.util.FechaUtils
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import java.text.NumberFormat
+import java.util.Locale
 
 class Reportes : AppCompatActivity() {
 
     private lateinit var recyclerViewTopProductos: RecyclerView
     private lateinit var topProductosAdapter: TopProductosAdapter
 
-    // Top productos de ejemplo por filtro. En una integración real esto
-    // vendría de ReportesRepository / VentasRepository según el rango de fechas.
-    private val topProductosPorFiltro = mapOf(
-        "Día" to listOf(
-            TopProducto("Macallan 18 Years", "Whisky Escocés", 349.00, 3, R.drawable.macallan18),
-            TopProducto("Clase Azul Reposado", "Tequila Artesanal", 210.00, 2, R.drawable.clase_azul)
-        ),
-        "Semana" to listOf(
-            TopProducto("Macallan 18 Years", "Whisky Escocés", 349.00, 24, R.drawable.macallan18),
-            TopProducto("Clase Azul Reposado", "Tequila Artesanal", 210.00, 18, R.drawable.clase_azul)
-        ),
-        "Mes" to listOf(
-            TopProducto("Macallan 18 Years", "Whisky Escocés", 349.00, 96, R.drawable.macallan18),
-            TopProducto("Clase Azul Reposado", "Tequila Artesanal", 210.00, 74, R.drawable.clase_azul),
-            TopProducto("Hennessy X.O", "Cognac", 280.00, 51, R.drawable.hennessyxo)
-        ),
-        "Año" to listOf(
-            TopProducto("Macallan 18 Years", "Whisky Escocés", 349.00, 1120, R.drawable.macallan18),
-            TopProducto("Clase Azul Reposado", "Tequila Artesanal", 210.00, 890, R.drawable.clase_azul),
-            TopProducto("Hennessy X.O", "Cognac", 280.00, 640, R.drawable.hennessyxo)
-        )
-    )
+    private lateinit var reportesRepository: ReportesRepository
+    private lateinit var ventasRepository: VentasRepository
+
+    private val formatoMoneda = NumberFormat.getCurrencyInstance(Locale.US)
+
+    // Ids de las 7 barras/etiquetas del gráfico "Rendimiento" en el mismo orden
+    private val barIds = listOf(R.id.barDia1, R.id.barDia2, R.id.barDia3, R.id.barDia4, R.id.barDia5, R.id.barDia6, R.id.barDia7)
+    private val lblIds = listOf(R.id.lblDia1, R.id.lblDia2, R.id.lblDia3, R.id.lblDia4, R.id.lblDia5, R.id.lblDia6, R.id.lblDia7)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,17 +50,31 @@ class Reportes : AppCompatActivity() {
             insets
         }
 
+        reportesRepository = ReportesRepository(this)
+        ventasRepository = VentasRepository(this)
+
         configurarRecyclerView()
         setupFilters()
         setupBottomNavigation()
+
+        updateDataForFilter("Día")
+        cargarGraficoRendimiento()
     }
+
+    override fun onResume() {
+        super.onResume()
+        updateDataForFilter(filtroActual)
+        cargarGraficoRendimiento()
+    }
+
+    private var filtroActual = "Día"
 
     private fun configurarRecyclerView() {
         recyclerViewTopProductos = findViewById(R.id.recyclerViewTopProductos)
         recyclerViewTopProductos.layoutManager = LinearLayoutManager(this)
         recyclerViewTopProductos.isNestedScrollingEnabled = false
 
-        topProductosAdapter = TopProductosAdapter(topProductosPorFiltro.getValue("Día"))
+        topProductosAdapter = TopProductosAdapter(emptyList())
         recyclerViewTopProductos.adapter = topProductosAdapter
     }
 
@@ -105,26 +110,47 @@ class Reportes : AppCompatActivity() {
     }
 
     private fun updateDataForFilter(filter: String) {
-        when (filter) {
-            "Día" -> {
-                findViewById<TextView>(R.id.txtTotalVentas).text = "$3,450"
-                findViewById<TextView>(R.id.txtGanancia).text = "$1,120"
-            }
-            "Semana" -> {
-                findViewById<TextView>(R.id.txtTotalVentas).text = "$24,850"
-                findViewById<TextView>(R.id.txtGanancia).text = "$8,210"
-            }
-            "Mes" -> {
-                findViewById<TextView>(R.id.txtTotalVentas).text = "$98,400"
-                findViewById<TextView>(R.id.txtGanancia).text = "$32,500"
-            }
-            "Año" -> {
-                findViewById<TextView>(R.id.txtTotalVentas).text = "$1,245,000"
-                findViewById<TextView>(R.id.txtGanancia).text = "$412,000"
-            }
-        }
+        filtroActual = filter
+        try {
+            val (desde, hasta) = FechaUtils.rangoParaFiltro(filter)
 
-        topProductosPorFiltro[filter]?.let { topProductosAdapter.actualizar(it) }
+            val totalVentas = ventasRepository.totalEntreFechas(desde, hasta)
+            val ganancia = ventasRepository.gananciaEntreFechas(desde, hasta)
+            val cantidadVentas = ventasRepository.cantidadVentasEntreFechas(desde, hasta)
+
+            findViewById<TextView>(R.id.txtTotalVentas).text = formatoMoneda.format(totalVentas)
+            findViewById<TextView>(R.id.txtGanancia).text = formatoMoneda.format(ganancia)
+
+            val avgTicket = if (cantidadVentas > 0) totalVentas / cantidadVentas else 0.0
+            findViewById<TextView>(R.id.txtAvgTicket).text = formatoMoneda.format(avgTicket)
+
+            val topProductos = reportesRepository.topProductos(desde, hasta, limite = 5)
+            topProductosAdapter.actualizar(topProductos)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun cargarGraficoRendimiento() {
+        try {
+            val dias = FechaUtils.ultimosNDias(7)
+            val totales = ventasRepository.totalesPorDia(dias)
+            val maximo = totales.values.maxOrNull()?.takeIf { it > 0 } ?: 1.0
+
+            dias.forEachIndexed { index, dia ->
+                if (index >= barIds.size) return@forEachIndexed
+                val total = totales[dia] ?: 0.0
+                val alturaDp = (16 + (total / maximo) * 104).toInt() // entre 16dp y 120dp
+                val barView = findViewById<View>(barIds[index])
+                val params = barView.layoutParams
+                params.height = (alturaDp * resources.displayMetrics.density).toInt()
+                barView.layoutParams = params
+
+                findViewById<TextView>(lblIds[index]).text = FechaUtils.etiquetaDiaCorta(dia)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun setupBottomNavigation() {
@@ -151,16 +177,7 @@ class Reportes : AppCompatActivity() {
                     finish()
                     true
                 }
-                R.id.nav_reportes -> {
-                    val intent = Intent(this, Reportes::class.java)
-                    startActivity(intent)
-                    finish()
-                    true
-                }
-                /*R.id.nav_profile -> {
-                    // Intent a Profile cuando exista
-                    true
-                }*/
+                R.id.nav_reportes -> true
                 else -> false
             }
         }

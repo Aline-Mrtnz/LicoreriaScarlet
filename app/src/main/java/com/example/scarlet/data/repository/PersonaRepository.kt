@@ -72,4 +72,37 @@ class PersonaRepository(context: Context) {
         ci = cursor.getString(cursor.getColumnIndexOrThrow("ci")),
         telefono = cursor.getString(cursor.getColumnIndexOrThrow("telefono"))
     )
+
+    /**
+     * Devuelve el id del "Cliente Mostrador" (walk-in) sembrado por la base
+     * de datos. Si por algún motivo no existiera (ej. una BD migrada de una
+     * versión anterior), lo crea al vuelo para que las ventas rápidas sin
+     * cliente específico siempre tengan un id_cliente válido.
+     */
+    fun obtenerOCrearClienteMostrador(): Int {
+        val db = dbHelper.readableDatabase
+        var cursor: Cursor? = null
+        try {
+            cursor = db.query(
+                "persona", arrayOf("id_persona"), "ci = ?",
+                arrayOf("00000000"), null, null, null
+            )
+            if (cursor.moveToFirst()) {
+                return cursor.getInt(cursor.getColumnIndexOrThrow("id_persona"))
+            }
+        } finally {
+            cursor?.close()
+            db.close()
+        }
+        // No existía: lo creamos
+        val nuevoId = crear(
+            Persona(
+                nombres = "Cliente",
+                apellidos = "Mostrador",
+                ci = "00000000",
+                telefono = ""
+            )
+        )
+        return nuevoId.toInt()
+    }
 }

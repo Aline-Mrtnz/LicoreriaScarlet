@@ -345,12 +345,14 @@
                         android:layout_marginEnd="4dp">
 
                         <View
+                            android:id="@+id/barDia1"
                             android:layout_width="match_parent"
                             android:layout_height="80dp"
                             android:background="#FF3B16"
                             android:layout_marginBottom="4dp" />
 
                         <TextView
+                            android:id="@+id/lblDia1"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Lun"
@@ -370,12 +372,14 @@
                         android:layout_marginEnd="4dp">
 
                         <View
+                            android:id="@+id/barDia2"
                             android:layout_width="match_parent"
                             android:layout_height="50dp"
                             android:background="#FF3B16"
                             android:layout_marginBottom="4dp" />
 
                         <TextView
+                            android:id="@+id/lblDia2"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Mar"
@@ -395,12 +399,14 @@
                         android:layout_marginEnd="4dp">
 
                         <View
+                            android:id="@+id/barDia3"
                             android:layout_width="match_parent"
                             android:layout_height="100dp"
                             android:background="#FF3B16"
                             android:layout_marginBottom="4dp" />
 
                         <TextView
+                            android:id="@+id/lblDia3"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Mié"
@@ -420,12 +426,14 @@
                         android:layout_marginEnd="4dp">
 
                         <View
+                            android:id="@+id/barDia4"
                             android:layout_width="match_parent"
                             android:layout_height="70dp"
                             android:background="#FF3B16"
                             android:layout_marginBottom="4dp" />
 
                         <TextView
+                            android:id="@+id/lblDia4"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Jue"
@@ -445,12 +453,14 @@
                         android:layout_marginEnd="4dp">
 
                         <View
+                            android:id="@+id/barDia5"
                             android:layout_width="match_parent"
                             android:layout_height="60dp"
                             android:background="#FF3B16"
                             android:layout_marginBottom="4dp" />
 
                         <TextView
+                            android:id="@+id/lblDia5"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Vie"
@@ -470,12 +480,14 @@
                         android:layout_marginEnd="4dp">
 
                         <View
+                            android:id="@+id/barDia6"
                             android:layout_width="match_parent"
                             android:layout_height="40dp"
                             android:background="#FF3B16"
                             android:layout_marginBottom="4dp" />
 
                         <TextView
+                            android:id="@+id/lblDia6"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Sáb"
@@ -494,12 +506,14 @@
                         android:gravity="bottom">
 
                         <View
+                            android:id="@+id/barDia7"
                             android:layout_width="match_parent"
                             android:layout_height="30dp"
                             android:background="#FF3B16"
                             android:layout_marginBottom="4dp" />
 
                         <TextView
+                            android:id="@+id/lblDia7"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Dom"
@@ -571,9 +585,10 @@
                         android:letterSpacing="0.05" />
 
                     <TextView
+                        android:id="@+id/txtAvgTicket"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="$125.00"
+                        android:text="$0.00"
                         android:textColor="#FFFFFF"
                         android:textSize="16sp"
                         android:textStyle="bold"

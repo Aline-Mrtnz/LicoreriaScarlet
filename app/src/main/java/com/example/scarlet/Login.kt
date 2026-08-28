@@ -15,7 +15,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.scarlet.data.repository.CuentaRepository
 import com.example.scarlet.database.databasehelpers
+import com.example.scarlet.util.Session
 import com.google.android.material.button.MaterialButton
 import android.database.sqlite.SQLiteException
 import java.io.File
@@ -89,6 +91,19 @@ class Login : AppCompatActivity() {
                 val esValido = dbHelper.validarPin(pinCompleto)
 
                 if (esValido) {
+                    // Guardar la sesión del usuario que acaba de iniciar sesión
+                    // para que el resto de la app sepa quién registra cada venta.
+                    val cuentaRepository = CuentaRepository(this)
+                    val usuarioInfo = cuentaRepository.obtenerUsuarioPorPin(pinCompleto)
+                    if (usuarioInfo != null) {
+                        Session.iniciar(
+                            idCuenta = usuarioInfo.idCuenta,
+                            usuario = usuarioInfo.usuario,
+                            nombreCompleto = "${usuarioInfo.nombres} ${usuarioInfo.apellidos}",
+                            rol = usuarioInfo.nombreRol
+                        )
+                    }
+
                     val intent = Intent(this, MainActivity::class.java)
                     startActivity(intent)
                     finish()
@@ -113,7 +128,6 @@ class Login : AppCompatActivity() {
             val dbHelper = databasehelpers(this)
             val db = dbHelper.readableDatabase
             db.close()
-            Toast.makeText(this, "Base de datos OK", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Toast.makeText(this, "Error al crear BD: ${e.message}", Toast.LENGTH_LONG).show()
             e.printStackTrace()
