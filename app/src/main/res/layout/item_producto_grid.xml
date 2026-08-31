@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_margin="6dp"
     app:cardBackgroundColor="#090909"
-    app:cardCornerRadius="10dp"
+    app:cardCornerRadius="12dp"
     app:strokeColor="#252525"
     app:strokeWidth="1dp">
 
@@ -14,16 +14,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="8dp">
+        android:padding="10dp">
 
-        <ImageView
-            android:id="@+id/ivProductoGrid"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="140dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/default_producto"
-            android:contentDescription="Producto"
-            android:layout_marginBottom="8dp" />
+            android:layout_height="120dp"
+            app:cardCornerRadius="8dp"
+            app:cardBackgroundColor="#111111"
+            app:strokeWidth="0dp"
+            android:layout_marginBottom="10dp">
+
+            <ImageView
+                android:id="@+id/ivProductoGrid"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/default_producto"
+                android:contentDescription="Producto" />
+
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:id="@+id/tvNombreProductoGrid"
@@ -37,38 +46,57 @@
             android:ellipsize="end" />
 
         <TextView
-            android:id="@+id/tvMarcaProductoGrid"
+            android:id="@+id/tvSubtituloProductoGrid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Marca"
+            android:layout_marginTop="2dp"
+            android:text="750ml • 40% ABV"
             android:textColor="#777777"
             android:textSize="10sp"
             android:maxLines="1"
             android:ellipsize="end" />
 
-        <TextView
-            android:id="@+id/tvPrecioProductoGrid"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="$0.00"
-            android:textColor="#FF2A00"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvPrecioProductoGrid"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="$0.00"
+                android:textColor="#FF2A00"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/imgAgregarCarritoGrid"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:background="@drawable/bg_add_button_circle"
+                android:contentDescription="Agregar al carrito"
+                android:padding="5dp"
+                android:src="@drawable/ic_plus" />
+
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/tvStockProductoGrid"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvDescripcionBtnGrid"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Stock: 0"
-            android:textColor="#FFFFFF"
-            android:textSize="8sp"
-            android:background="#333333"
-            android:paddingStart="6dp"
-            android:paddingEnd="6dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_description_button"
+            android:gravity="center"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:text="Descripción"
+            android:textColor="#FF3B16"
+            android:textSize="11sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 

@@ -33,6 +33,8 @@ class ProductosRepository(private val context: Context) {
                 p.estado,
                 p.id_categoria,
                 p.marcas_id_marca,
+                p.volumen_ml,
+                p.abv,
                 COALESCE(c.nombre_categoria, 'Sin categoría') AS nombre_categoria,
                 COALESCE(m.nombre_marca, 'Sin marca') AS nombre_marca
             FROM productos p
@@ -77,6 +79,8 @@ class ProductosRepository(private val context: Context) {
                 p.estado,
                 p.id_categoria,
                 p.marcas_id_marca,
+                p.volumen_ml,
+                p.abv,
                 COALESCE(c.nombre_categoria, 'Sin categoría') AS nombre_categoria,
                 COALESCE(m.nombre_marca, 'Sin marca') AS nombre_marca
             FROM productos p
@@ -122,6 +126,8 @@ class ProductosRepository(private val context: Context) {
                 p.estado,
                 p.id_categoria,
                 p.marcas_id_marca,
+                p.volumen_ml,
+                p.abv,
                 COALESCE(c.nombre_categoria, 'Sin categoría') AS nombre_categoria,
                 COALESCE(m.nombre_marca, 'Sin marca') AS nombre_marca
             FROM productos p
@@ -165,6 +171,8 @@ class ProductosRepository(private val context: Context) {
                 p.estado,
                 p.id_categoria,
                 p.marcas_id_marca,
+                p.volumen_ml,
+                p.abv,
                 COALESCE(c.nombre_categoria, 'Sin categoría') AS nombre_categoria,
                 COALESCE(m.nombre_marca, 'Sin marca') AS nombre_marca
             FROM productos p
@@ -209,6 +217,8 @@ class ProductosRepository(private val context: Context) {
                 p.estado,
                 p.id_categoria,
                 p.marcas_id_marca,
+                p.volumen_ml,
+                p.abv,
                 COALESCE(c.nombre_categoria, 'Sin categoría') AS nombre_categoria,
                 COALESCE(m.nombre_marca, 'Sin marca') AS nombre_marca
             FROM productos p
@@ -255,6 +265,8 @@ class ProductosRepository(private val context: Context) {
                 p.estado,
                 p.id_categoria,
                 p.marcas_id_marca,
+                p.volumen_ml,
+                p.abv,
                 COALESCE(c.nombre_categoria, 'Sin categoría') AS nombre_categoria,
                 COALESCE(m.nombre_marca, 'Sin marca') AS nombre_marca
             FROM productos p
@@ -314,6 +326,8 @@ class ProductosRepository(private val context: Context) {
                 p.estado,
                 p.id_categoria,
                 p.marcas_id_marca,
+                p.volumen_ml,
+                p.abv,
                 COALESCE(c.nombre_categoria, 'Sin categoría') AS nombre_categoria,
                 COALESCE(m.nombre_marca, 'Sin marca') AS nombre_marca
             FROM productos p
@@ -467,7 +481,9 @@ class ProductosRepository(private val context: Context) {
                 put("stock_minimo", producto.stockMinimo)
                 put("estado", producto.estado)
                 put("id_categoria", producto.idCategoria)
-                put("marcas_id_marca", producto.marcasIdMarca)
+                if (producto.marcasIdMarca != null) put("marcas_id_marca", producto.marcasIdMarca) else putNull("marcas_id_marca")
+                if (producto.volumenMl != null) put("volumen_ml", producto.volumenMl) else putNull("volumen_ml")
+                if (producto.abv != null) put("abv", producto.abv) else putNull("abv")
             }
             return db.insert("productos", null, values)
         } catch (e: Exception) {
@@ -495,7 +511,9 @@ class ProductosRepository(private val context: Context) {
                 put("stock_minimo", producto.stockMinimo)
                 put("estado", producto.estado)
                 put("id_categoria", producto.idCategoria)
-                put("marcas_id_marca", producto.marcasIdMarca)
+                if (producto.marcasIdMarca != null) put("marcas_id_marca", producto.marcasIdMarca) else putNull("marcas_id_marca")
+                if (producto.volumenMl != null) put("volumen_ml", producto.volumenMl) else putNull("volumen_ml")
+                if (producto.abv != null) put("abv", producto.abv) else putNull("abv")
             }
             val filas = db.update("productos", values, "id_producto = ?", arrayOf(producto.idProducto.toString()))
             return filas > 0
@@ -532,6 +550,9 @@ class ProductosRepository(private val context: Context) {
      * Extrae un objeto Producto del cursor
      */
     private fun extraerProductoDeCursor(cursor: Cursor): Producto {
+        val idxMarca = cursor.getColumnIndexOrThrow("marcas_id_marca")
+        val idxVolumen = cursor.getColumnIndexOrThrow("volumen_ml")
+        val idxAbv = cursor.getColumnIndexOrThrow("abv")
         return Producto(
             idProducto = cursor.getInt(cursor.getColumnIndexOrThrow("id_producto")),
             nombreProducto = cursor.getString(cursor.getColumnIndexOrThrow("nombre_producto")),
@@ -544,7 +565,9 @@ class ProductosRepository(private val context: Context) {
             stockMinimo = cursor.getInt(cursor.getColumnIndexOrThrow("stock_minimo")),
             estado = cursor.getString(cursor.getColumnIndexOrThrow("estado")),
             idCategoria = cursor.getInt(cursor.getColumnIndexOrThrow("id_categoria")),
-            marcasIdMarca = cursor.getInt(cursor.getColumnIndexOrThrow("marcas_id_marca")),
+            marcasIdMarca = if (cursor.isNull(idxMarca)) null else cursor.getInt(idxMarca),
+            volumenMl = if (cursor.isNull(idxVolumen)) null else cursor.getInt(idxVolumen),
+            abv = if (cursor.isNull(idxAbv)) null else cursor.getDouble(idxAbv),
             nombreCategoria = cursor.getString(cursor.getColumnIndexOrThrow("nombre_categoria")),
             nombreMarca = cursor.getString(cursor.getColumnIndexOrThrow("nombre_marca"))
         )

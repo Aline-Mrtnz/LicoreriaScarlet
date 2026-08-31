@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteException
 import android.util.Log
 
 class databasehelpers(context: Context) :
-    SQLiteOpenHelper(context, "LicoreriaScarlet.db", null, 4) {  // Versión 4: corrige tabla pagos y datos por defecto
+    SQLiteOpenHelper(context, "LicoreriaScarlet.db", null, 5) {  // Versión 5: añade volumen_ml y abv a productos, marca opcional
 
     companion object {
         private const val TAG = "DatabaseHelper"
@@ -125,7 +125,9 @@ class databasehelpers(context: Context) :
                 stock_minimo INTEGER DEFAULT 5,
                 estado TEXT NOT NULL,
                 id_categoria INTEGER NOT NULL,
-                marcas_id_marca INTEGER NOT NULL,
+                marcas_id_marca INTEGER,
+                volumen_ml INTEGER,
+                abv DECIMAL(5,2),
                 FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria),
                 FOREIGN KEY (marcas_id_marca) REFERENCES marcas(id_marca)
             )

@@ -4,17 +4,20 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.LayoutInflater
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.scarlet.adapter.ProductosAdapter
+import com.example.scarlet.adapter.ProductosGridAdapter
 import com.example.scarlet.cart.CartManager
 import com.example.scarlet.data.model.Producto
 import com.example.scarlet.data.repository.ProductosRepository
+import java.text.DecimalFormat
 
 class Productos : AppCompatActivity() {
 
@@ -23,10 +26,11 @@ class Productos : AppCompatActivity() {
     }
 
     private lateinit var recyclerViewProductos: RecyclerView
-    private lateinit var adapter: ProductosAdapter
+    private lateinit var adapter: ProductosGridAdapter
     private lateinit var productosRepository: ProductosRepository
     private lateinit var edtBuscar: EditText
     private lateinit var tvCartBadge: TextView
+    private val decimalFormat = DecimalFormat("$#,##0.00")
 
     private var categoriaActual: String = "Todos"
 
@@ -35,6 +39,14 @@ class Productos : AppCompatActivity() {
     private var chipSeleccionado: TextView? = null
 
     private val cartListener: () -> Unit = { actualizarBadgeCarrito() }
+
+    private val agregarProductoLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { resultado ->
+        if (resultado.resultCode == RESULT_OK) {
+            cargarProductos()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,13 +96,39 @@ class Productos : AppCompatActivity() {
 
     private fun configurarRecyclerView() {
         recyclerViewProductos = findViewById(R.id.recyclerViewProductos)
-        recyclerViewProductos.layoutManager = LinearLayoutManager(this)
+        recyclerViewProductos.layoutManager = GridLayoutManager(this, 2)
 
-        adapter = ProductosAdapter(emptyList()) { producto ->
-            agregarAlCarrito(producto)
-        }
+        adapter = ProductosGridAdapter(
+            emptyList(),
+            onAgregarClick = { producto -> agregarAlCarrito(producto) },
+            onDescripcionClick = { producto -> mostrarDialogoDescripcion(producto) }
+        )
 
         recyclerViewProductos.adapter = adapter
+    }
+
+    private fun mostrarDialogoDescripcion(producto: Producto) {
+        val vista = LayoutInflater.from(this).inflate(R.layout.dialog_producto_detalle, null)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(vista)
+            .create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        vista.findViewById<TextView>(R.id.tvDialogNombre).text = producto.nombreProducto
+        vista.findViewById<TextView>(R.id.tvDialogDescripcion).text =
+            producto.descripcion?.takeIf { it.isNotBlank() } ?: "Este producto no tiene una descripción registrada."
+        vista.findViewById<TextView>(R.id.tvDialogPrecio).text = decimalFormat.format(producto.precioVenta)
+
+        vista.findViewById<ImageView>(R.id.btnCerrarDialog).setOnClickListener {
+            dialog.dismiss()
+        }
+        vista.findViewById<TextView>(R.id.btnDialogAgregarCarrito).setOnClickListener {
+            agregarAlCarrito(producto)
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun agregarAlCarrito(producto: Producto) {
@@ -184,6 +222,9 @@ class Productos : AppCompatActivity() {
     private fun configurarListeners() {
         findViewById<ImageView>(R.id.imgCarrito).setOnClickListener {
             startActivity(Intent(this, Shopping::class.java))
+        }
+        findViewById<ImageView>(R.id.btnAddProducto).setOnClickListener {
+            agregarProductoLauncher.launch(Intent(this, AgregarProducto::class.java))
         }
     }
 }

@@ -5,10 +5,12 @@ package com.example.scarlet.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.scarlet.R
 import com.example.scarlet.data.model.Producto
+import com.example.scarlet.util.ImagenUtils
 import java.text.DecimalFormat
 
 class ProductosAdapter(
@@ -37,6 +39,7 @@ class ProductosAdapter(
     }
 
     inner class ProductoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val imgProducto: ImageView = itemView.findViewById(R.id.imgProducto)
         private val tvNombre: TextView = itemView.findViewById(R.id.tvNombreProducto)
         private val tvDescripcion: TextView = itemView.findViewById(R.id.tvDescripcionProducto)
         private val tvPrecio: TextView = itemView.findViewById(R.id.tvPrecioProducto)
@@ -44,8 +47,18 @@ class ProductosAdapter(
         private val imgAgregarCarrito: android.widget.ImageView = itemView.findViewById(R.id.imgAgregarCarrito)
 
         fun bind(producto: Producto) {
+            ImagenUtils.cargarEnImageView(itemView.context, imgProducto, producto.imagen)
+
             tvNombre.text = producto.nombreProducto
-            tvDescripcion.text = producto.descripcion ?: "Sin descripción"
+
+            val volumen = producto.volumenMl?.let { formatearVolumen(it) }
+            tvDescripcion.text = when {
+                !producto.nombreCategoria.isNullOrBlank() && volumen != null ->
+                    "${producto.nombreCategoria} • $volumen"
+                !producto.nombreCategoria.isNullOrBlank() -> producto.nombreCategoria
+                else -> producto.descripcion ?: "Sin descripción"
+            }
+
             tvPrecio.text = decimalFormat.format(producto.precioVenta)
             tvStock.text = "Stock: ${producto.stock}"
 
@@ -54,6 +67,15 @@ class ProductosAdapter(
             }
             imgAgregarCarrito.setOnClickListener {
                 onItemClick(producto)
+            }
+        }
+
+        private fun formatearVolumen(ml: Int): String {
+            return if (ml >= 1000) {
+                val litros = ml / 1000.0
+                if (litros == litros.toInt().toDouble()) "${litros.toInt()}L" else "${litros}L"
+            } else {
+                "${ml}ml"
             }
         }
     }
