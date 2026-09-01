@@ -137,6 +137,9 @@ class MainActivity : AppCompatActivity() {
         // Configurar listeners de header / FAB / categorías
         configurarListeners()
 
+        // Configurar notificaciones
+        setupNotifications()
+
         // ============================================
         // BOTTOM NAVIGATION
         // ============================================
@@ -443,6 +446,50 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Cancelar", null)
             .show()
     }
+    // ============================================
+    // NOTIFICACIONES
+    // ============================================
+
+        private fun setupNotifications() {
+
+            val notificationIcon =
+                findViewById<ImageView>(R.id.imgNorificacion)
+
+            val badge =
+                findViewById<TextView>(R.id.txtNotificationBadge)
+
+            val notificationCount = 3
+
+            if (notificationCount > 0) {
+
+                badge.text =
+                    if (notificationCount > 99) {
+                        "99+"
+                    } else {
+                        notificationCount.toString()
+                    }
+
+                badge.visibility =
+                    android.view.View.VISIBLE
+
+            } else {
+
+                badge.visibility =
+                    android.view.View.GONE
+            }
+
+            notificationIcon.setOnClickListener {
+
+                Toast.makeText(
+                    this,
+                    "Tienes $notificationCount nuevas notificaciones",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                badge.visibility =
+                    android.view.View.GONE
+            }
+        }
 
     fun recargarProductos() {
         cargarProductos()

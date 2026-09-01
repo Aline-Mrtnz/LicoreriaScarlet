@@ -24,6 +24,9 @@ import com.example.scarlet.util.Session
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.text.NumberFormat
 import java.util.Locale
+import android.view.ViewGroup
+import android.view.View
+
 
 class Shopping : AppCompatActivity() {
 
@@ -52,18 +55,51 @@ class Shopping : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_shopping)
 
+        val header = findViewById<android.view.View>(R.id.headerLayout)
+        val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+
         ViewCompat.setOnApplyWindowInsetsListener(
             findViewById(R.id.main)
-        ) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(
-                systemBars.left,
+        ) { _, insets ->
+
+            val systemBars =
+                insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            // HEADER
+            val headerParams =
+                header.layoutParams as ViewGroup.MarginLayoutParams
+
+            headerParams.height =
+                (82 * resources.displayMetrics.density).toInt() + systemBars.top
+
+            header.layoutParams = headerParams
+
+            header.setPadding(
+                header.paddingLeft,
                 systemBars.top,
-                systemBars.right,
+                header.paddingRight,
+                header.paddingBottom
+            )// BOTTOM NAVIGATION
+            val bottomParams =
+                bottomNavigation.layoutParams as ViewGroup.MarginLayoutParams
+
+            bottomParams.height =
+                (80 * resources.displayMetrics.density).toInt() + systemBars.bottom
+
+            bottomNavigation.layoutParams = bottomParams
+
+            bottomNavigation.setPadding(
+                bottomNavigation.paddingLeft,
+                bottomNavigation.paddingTop,
+                bottomNavigation.paddingRight,
                 systemBars.bottom
             )
+
+
+
             insets
         }
+
 
         ventasRepository = VentasRepository(this)
         pagosRepository = PagosRepository(this)
@@ -84,8 +120,12 @@ class Shopping : AppCompatActivity() {
         // Configurar botón de volver
         setupBackButton()
 
+
+
         // Configurar botón "Añadir más productos"
         setupAddMoreButton()
+
+
 
         // Configurar botón "Finalizar Compra"
         setupCheckoutButton()
@@ -264,4 +304,5 @@ class Shopping : AppCompatActivity() {
             }
         }
     }
+
 }

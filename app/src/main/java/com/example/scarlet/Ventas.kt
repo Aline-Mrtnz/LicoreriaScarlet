@@ -3,6 +3,9 @@ package com.example.scarlet
 import android.content.Intent
 import android.os.Bundle
 import android.widget.TextView
+import android.widget.ImageView
+import android.widget.Toast
+import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -34,9 +37,54 @@ class Ventas : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_sales)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+        val header = findViewById<android.view.View>(R.id.headerLayout)
+        val bottomNavigation =
+            findViewById<BottomNavigationView>(R.id.bottomNavigation)
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+            findViewById(R.id.main)
+        ) { _, insets ->
+
+            val systemBars =
+                insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                )
+
+            // HEADER
+            val headerParams =
+                header.layoutParams as ViewGroup.MarginLayoutParams
+
+            headerParams.height =
+                (82 * resources.displayMetrics.density).toInt() +
+                        systemBars.top
+
+            header.layoutParams = headerParams
+
+            header.setPadding(
+                header.paddingLeft,
+                systemBars.top,
+                header.paddingRight,
+                header.paddingBottom
+            )
+
+            // MENÚ INFERIOR
+            val bottomParams =
+                bottomNavigation.layoutParams
+                        as ViewGroup.MarginLayoutParams
+
+            bottomParams.height =
+                (80 * resources.displayMetrics.density).toInt() +
+                        systemBars.bottom
+
+            bottomNavigation.layoutParams = bottomParams
+
+            bottomNavigation.setPadding(
+                bottomNavigation.paddingLeft,
+                bottomNavigation.paddingTop,
+                bottomNavigation.paddingRight,
+                systemBars.bottom
+            )
+
             insets
         }
 
@@ -58,6 +106,7 @@ class Ventas : AppCompatActivity() {
 
         cargarInformacionUsuario()
         setupBottomNavigation()
+        setupNotifications()
 
         val fechaLegible = SimpleDateFormat("EEEE d 'de' MMMM, yyyy", Locale("es", "ES")).format(Date())
         findViewById<TextView>(R.id.txtFechaHoy).text =
@@ -123,6 +172,44 @@ class Ventas : AppCompatActivity() {
                 }
                 else -> false
             }
+        }
+    }
+
+    private fun setupNotifications() {
+
+        val notificationIcon =
+            findViewById<ImageView>(R.id.imgNorificacion)
+
+        val badge =
+            findViewById<TextView>(R.id.txtNotificationBadge)
+
+        val notificationCount = 3
+
+        if (notificationCount > 0) {
+
+            badge.text =
+                if (notificationCount > 99) {
+                    "99+"
+                } else {
+                    notificationCount.toString()
+                }
+
+            badge.visibility = android.view.View.VISIBLE
+
+        } else {
+
+            badge.visibility = android.view.View.GONE
+        }
+
+        notificationIcon.setOnClickListener {
+
+            Toast.makeText(
+                this,
+                "Tienes $notificationCount nuevas notificaciones",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            badge.visibility = android.view.View.GONE
         }
     }
 }

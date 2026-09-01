@@ -93,51 +93,73 @@
             android:scaleType="centerCrop"
             android:src="@drawable/scarlet" />
 
+
         <!-- CARRITO -->
         <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
-            android:layout_marginEnd="4dp"
-            android:layout_marginRight="5dp">
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="3dp"
+            android:layout_gravity="center_vertical">
 
             <ImageView
                 android:id="@+id/imgCarrito"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/carrito" />
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:scaleType="centerInside"
+                android:src="@drawable/carrito"
+                android:contentDescription="Carrito" />
 
             <TextView
                 android:id="@+id/tvCartBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end|top"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="-6dp"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="top|end"
+                android:gravity="center"
                 android:background="@drawable/circle_background"
                 android:backgroundTint="#FF2A00"
-                android:gravity="center"
-                android:minWidth="14dp"
-                android:minHeight="14dp"
-                android:paddingStart="3dp"
-                android:paddingEnd="3dp"
                 android:text="0"
                 android:textColor="#FFFFFF"
                 android:textSize="8sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
+
         </FrameLayout>
 
+
         <!-- NOTIFICACION -->
-        <ImageView
-            android:id="@+id/imgNorificacion"
-            android:layout_width="14dp"
-            android:layout_height="18dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginEnd="4dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/notification" />
+        <FrameLayout
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp"
+            android:layout_gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/imgNorificacion"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:scaleType="centerInside"
+                android:src="@drawable/notification"
+                android:contentDescription="Notificaciones" />
+
+            <TextView
+                android:id="@+id/txtNotificationBadge"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="top|end"
+                android:gravity="center"
+                android:background="@drawable/circle_background"
+                android:backgroundTint="#FF2A00"
+                android:text="3"
+                android:textColor="#FFFFFF"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+        </FrameLayout>
 
     </LinearLayout>
 
@@ -519,18 +541,22 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:background="#090909"
+
         app:itemActiveIndicatorStyle="@null"
-        app:itemIconTint="@color/rojo"
-        app:itemTextColor="@color/rojo"
+        app:itemIconTint="@color/bottom_nav_selector"
+        app:itemTextColor="@color/bottom_nav_selector"
         app:labelVisibilityMode="labeled"
+
         app:itemIconSize="28dp"
         app:itemTextAppearanceActive="@style/BottomNavigationText"
         app:itemTextAppearanceInactive="@style/BottomNavigationText"
+
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+
         app:menu="@menu/bottom_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

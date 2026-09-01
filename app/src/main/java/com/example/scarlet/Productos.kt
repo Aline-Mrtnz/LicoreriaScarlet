@@ -18,6 +18,10 @@ import com.example.scarlet.cart.CartManager
 import com.example.scarlet.data.model.Producto
 import com.example.scarlet.data.repository.ProductosRepository
 import java.text.DecimalFormat
+import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class Productos : AppCompatActivity() {
 
@@ -53,12 +57,82 @@ class Productos : AppCompatActivity() {
         setContentView(R.layout.activity_products)
 
         productosRepository = ProductosRepository(this)
+        val bottomNavigation =
+            findViewById<BottomNavigationView>(R.id.bottomNavigation)
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+            findViewById(R.id.main)
+        ) { _, insets ->
+
+            val systemBars =
+                insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                )
+
+            val bottomParams =
+                bottomNavigation.layoutParams
+                        as ViewGroup.MarginLayoutParams
+
+            bottomParams.height =
+                (80 * resources.displayMetrics.density).toInt() +
+                        systemBars.bottom
+
+            bottomNavigation.layoutParams = bottomParams
+
+            bottomNavigation.setPadding(
+                bottomNavigation.paddingLeft,
+                bottomNavigation.paddingTop,
+                bottomNavigation.paddingRight,
+                systemBars.bottom
+            )
+
+            insets
+        }
+        // ============================================
+// NAVEGACIÓN INFERIOR
+// ============================================
+
+        bottomNavigation.selectedItemId = R.id.nav_productos
+
+        bottomNavigation.setOnItemSelectedListener { item ->
+
+            when (item.itemId) {
+
+                R.id.nav_home -> {
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finish()
+                    true
+                }
+
+                R.id.nav_productos -> {
+                    // Ya estamos en Productos
+                    true
+                }
+
+                R.id.nav_ventas -> {
+                    startActivity(Intent(this, Ventas::class.java))
+                    finish()
+                    true
+                }
+
+                R.id.nav_reportes -> {
+                    startActivity(Intent(this, Reportes::class.java))
+                    finish()
+                    true
+                }
+
+                else -> false
+            }
+        }
+
+
         tvCartBadge = findViewById(R.id.tvCartBadge)
 
         configurarRecyclerView()
         configurarCategorias()
         configurarBusqueda()
         configurarListeners()
+        setupNotifications()
 
         // Si venimos desde una categoría de la pantalla de Inicio, la preseleccionamos
         val categoriaSolicitada = intent.getStringExtra(EXTRA_CATEGORIA)
@@ -225,6 +299,44 @@ class Productos : AppCompatActivity() {
         }
         findViewById<ImageView>(R.id.btnAddProducto).setOnClickListener {
             agregarProductoLauncher.launch(Intent(this, AgregarProducto::class.java))
+        }
+    }
+
+    private fun setupNotifications() {
+
+        val notificationIcon =
+            findViewById<ImageView>(R.id.imgNorificacion)
+
+        val badge =
+            findViewById<TextView>(R.id.txtNotificationBadge)
+
+        val notificationCount = 3
+
+        if (notificationCount > 0) {
+
+            badge.text =
+                if (notificationCount > 99) {
+                    "99+"
+                } else {
+                    notificationCount.toString()
+                }
+
+            badge.visibility = android.view.View.VISIBLE
+
+        } else {
+
+            badge.visibility = android.view.View.GONE
+        }
+
+        notificationIcon.setOnClickListener {
+
+            Toast.makeText(
+                this,
+                "Tienes $notificationCount nuevas notificaciones",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            badge.visibility = android.view.View.GONE
         }
     }
 }
