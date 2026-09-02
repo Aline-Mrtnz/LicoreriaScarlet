@@ -785,7 +785,7 @@ class databasehelpers(context: Context) :
             ProductoData(
                 nombre = "Kahlúa Coffee Liqueur",
                 descripcion = "Licor de café mexicano, ideal para cócteles",
-                imagen = "kahlua_coffee",
+                imagen = "kahlua_coffee_liqueur",
                 precioVenta = 30.00,
                 precioMayor = 24.00,
                 precioCompra = 18.00,

@@ -301,7 +301,7 @@ class MainActivity : AppCompatActivity() {
     private fun configurarListeners() {
         val fabAdd = findViewById<FloatingActionButton>(R.id.fabAdd)
         fabAdd.setOnClickListener {
-            mostrarDialogoNuevoProducto()
+            //mostrarDialogoNuevoProducto()
         }
 
         val verCategorias = findViewById<TextView>(R.id.idVerCategorias)
@@ -350,102 +350,6 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    /**
-     * Formulario rápido para dar de alta un producto nuevo directamente
-     * desde la pantalla de Inicio (botón "+").
-     */
-    private fun mostrarDialogoNuevoProducto() {
-        val categoriasRepository = CategoriasRepository(this)
-        val marcasRepository = MarcasRepository(this)
-        val categorias: List<Categorias> = categoriasRepository.listar()
-        val marcas: List<Marcas> = marcasRepository.listar()
-
-        if (categorias.isEmpty() || marcas.isEmpty()) {
-            Toast.makeText(this, "Primero deben existir categorías y marcas", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val padding = (16 * resources.displayMetrics.density).toInt()
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(padding, padding, padding, padding)
-        }
-
-        val edtNombre = EditText(this).apply { hint = "Nombre del producto" }
-        val edtDescripcion = EditText(this).apply { hint = "Descripción (opcional)" }
-        val edtPrecio = EditText(this).apply {
-            hint = "Precio de venta"
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-        }
-        val edtStock = EditText(this).apply {
-            hint = "Stock inicial"
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER
-        }
-
-        val spinnerCategoria = Spinner(this).apply {
-            adapter = ArrayAdapter(
-                this@MainActivity,
-                android.R.layout.simple_spinner_dropdown_item,
-                categorias.map { it.nombre_categoria }
-            )
-        }
-        val spinnerMarca = Spinner(this).apply {
-            adapter = ArrayAdapter(
-                this@MainActivity,
-                android.R.layout.simple_spinner_dropdown_item,
-                marcas.map { it.nombre_marca }
-            )
-        }
-
-        listOf(edtNombre, edtDescripcion, edtPrecio, edtStock).forEach { layout.addView(it) }
-        layout.addView(TextView(this).apply { text = "Categoría" })
-        layout.addView(spinnerCategoria)
-        layout.addView(TextView(this).apply { text = "Marca" })
-        layout.addView(spinnerMarca)
-
-        AlertDialog.Builder(this)
-            .setTitle("Nuevo producto")
-            .setView(layout)
-            .setPositiveButton("Guardar") { _, _ ->
-                val nombre = edtNombre.text.toString().trim()
-                val precio = edtPrecio.text.toString().trim().toDoubleOrNull()
-                val stock = edtStock.text.toString().trim().toIntOrNull()
-
-                if (nombre.isEmpty() || precio == null || stock == null) {
-                    Toast.makeText(this, "Completa nombre, precio y stock correctamente", Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
-                }
-
-                val categoria = categorias[spinnerCategoria.selectedItemPosition]
-                val marca = marcas[spinnerMarca.selectedItemPosition]
-
-                val nuevoProducto = Producto(
-                    idProducto = 0,
-                    nombreProducto = nombre,
-                    descripcion = edtDescripcion.text.toString().trim().ifEmpty { null },
-                    imagen = null,
-                    precioVenta = precio,
-                    precioMayor = null,
-                    precioCompra = null,
-                    stock = stock,
-                    stockMinimo = 5,
-                    estado = "ACTIVO",
-                    idCategoria = categoria.id_categoria,
-                    marcasIdMarca = marca.id_marca
-                )
-
-                val id = productosRepository.crearProducto(nuevoProducto)
-                if (id > 0) {
-                    Toast.makeText(this, "Producto agregado correctamente", Toast.LENGTH_SHORT).show()
-                    cargarProductos()
-                    cargarEstadisticas()
-                } else {
-                    Toast.makeText(this, "No se pudo guardar el producto", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
-    }
     // ============================================
     // NOTIFICACIONES
     // ============================================
