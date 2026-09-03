@@ -2,10 +2,12 @@ package com.example.scarlet
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import android.widget.ImageView
 import android.widget.Toast
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -22,6 +24,11 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+//
+import androidx.appcompat.app.AlertDialog
+import com.example.scarlet.util.Session
+import com.example.scarlet.cart.CartManager
+
 
 class Ventas : AppCompatActivity() {
 
@@ -37,6 +44,65 @@ class Ventas : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_sales)
+
+        val imgMenu = findViewById<ImageView>(R.id.imgMenu)
+        val sideMenu = findViewById<LinearLayout>(R.id.sideMenu)
+        val menuProveedores = findViewById<TextView>(R.id.menuProveedores)
+        val menuMiCuenta = findViewById<TextView>(R.id.menuMiCuenta)
+
+        imgMenu.setOnClickListener {
+
+            if (sideMenu.visibility == View.GONE) {
+
+                sideMenu.visibility = View.VISIBLE
+
+                sideMenu.translationX = -sideMenu.width.toFloat()
+
+                sideMenu.animate()
+                    .translationX(0f)
+                    .setDuration(250)
+                    .start()
+
+            } else {
+
+                sideMenu.animate()
+                    .translationX(-sideMenu.width.toFloat())
+                    .setDuration(250)
+                    .withEndAction {
+                        sideMenu.visibility = View.GONE
+                    }
+                    .start()
+            }
+        }
+        // para el mi cuenta
+        menuMiCuenta.setOnClickListener {
+            val intent = Intent(this, MiCuenta::class.java)
+            startActivity(intent)
+        }
+        // cerra sesion
+        findViewById<TextView>(R.id.menuSalir).setOnClickListener {
+
+            AlertDialog.Builder(this)
+                .setTitle("Cerrar sesión")
+                .setMessage("¿Estás seguro de que deseas cerrar sesión?")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Salir") { _, _ ->
+
+                    Session.cerrar()
+                    CartManager.limpiar()
+
+                    val intent = Intent(this, Login::class.java)
+
+                    intent.flags =
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                                Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                    startActivity(intent)
+                    finish()
+                }
+                .show()
+        }
+
         val header = findViewById<android.view.View>(R.id.headerLayout)
         val bottomNavigation =
             findViewById<BottomNavigationView>(R.id.bottomNavigation)

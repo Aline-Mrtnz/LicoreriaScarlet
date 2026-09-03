@@ -33,8 +33,17 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.NumberFormat
 import java.util.Locale
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.view.Gravity
+import android.view.View
+import android.widget.PopupWindow
+
+
 
 class MainActivity : AppCompatActivity() {
+
+
 
     private lateinit var recyclerViewProductos: RecyclerView
     private lateinit var adapter: ProductosAdapter
@@ -53,8 +62,78 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
-
+        //
         setContentView(R.layout.activity_main)
+
+        val imgMenu = findViewById<ImageView>(R.id.imgMenu)
+        val sideMenu = findViewById<LinearLayout>(R.id.sideMenu)
+        val menuProveedores = findViewById<TextView>(R.id.menuProveedores)
+        val menuMiCuenta = findViewById<TextView>(R.id.menuMiCuenta)
+        val fabAdd = findViewById<FloatingActionButton>(R.id.fabAdd)
+
+        fabAdd.setOnClickListener {
+            startActivity(
+                Intent(this, QR::class.java)
+            )
+        }
+
+        imgMenu.setOnClickListener {
+
+            if (sideMenu.visibility == View.GONE) {
+
+                sideMenu.visibility = View.VISIBLE
+
+                sideMenu.translationX = -sideMenu.width.toFloat()
+
+                sideMenu.animate()
+                    .translationX(0f)
+                    .setDuration(250)
+                    .start()
+
+            } else {
+
+                sideMenu.animate()
+                    .translationX(-sideMenu.width.toFloat())
+                    .setDuration(250)
+                    .withEndAction {
+                        sideMenu.visibility = View.GONE
+                    }
+                    .start()
+            }
+        }
+
+
+
+        // para el mi cuenta
+        menuMiCuenta.setOnClickListener {
+            val intent = Intent(this, MiCuenta::class.java)
+            startActivity(intent)
+        }
+        // cerra sesion
+        findViewById<TextView>(R.id.menuSalir).setOnClickListener {
+
+            AlertDialog.Builder(this)
+                .setTitle("Cerrar sesión")
+                .setMessage("¿Estás seguro de que deseas cerrar sesión?")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Salir") { _, _ ->
+
+                    Session.cerrar()
+                    CartManager.limpiar()
+
+                    val intent = Intent(this, Login::class.java)
+
+                    intent.flags =
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                                Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                    startActivity(intent)
+                    finish()
+                }
+                .show()
+        }
+
+
 
         val header =
             findViewById<android.view.View>(R.id.headerLayout)
@@ -300,8 +379,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun configurarListeners() {
         val fabAdd = findViewById<FloatingActionButton>(R.id.fabAdd)
+
         fabAdd.setOnClickListener {
-            //mostrarDialogoNuevoProducto()
+            startActivity(Intent(this, QR::class.java))
         }
 
         val verCategorias = findViewById<TextView>(R.id.idVerCategorias)

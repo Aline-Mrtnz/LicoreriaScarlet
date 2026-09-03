@@ -45,11 +45,18 @@
         <activity
             android:name=".MainActivity"
             android:exported="false" />
+        <activity
+            android:name=".MiCuenta"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".QR"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
-</manifest>
-
-    <!--<?xml version="1.0" encoding="utf-8"?>
+</manifest><!--
+<?xml version="1.0" encoding="utf-8"?>
 
 <manifest
 xmlns:android="http://schemas.android.com/apk/res/android"
@@ -81,8 +88,10 @@ xmlns:tools="http://schemas.android.com/tools">
         android:name=".Login"
         android:exported="false" />
 
-    <!- PANTALLA PRINCIPAL -->
-    <!--<activity
+    <!- PANTALLA PRINCIPAL
+-->
+    <!--
+<activity
         android:name=".MainActivity"
         android:exported="true">
 
@@ -98,4 +107,5 @@ xmlns:tools="http://schemas.android.com/tools">
 
 </application>
 
-</manifest>-->
+</manifest>
+-->

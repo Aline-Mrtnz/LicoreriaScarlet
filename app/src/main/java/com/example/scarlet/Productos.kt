@@ -22,6 +22,13 @@ import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
+//
+import android.view.View
+import android.widget.LinearLayout
+import com.example.scarlet.util.Session
+
+
+
 
 class Productos : AppCompatActivity() {
 
@@ -55,6 +62,70 @@ class Productos : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_products)
+        //
+        val imgMenu = findViewById<ImageView>(R.id.imgMenu)
+        val sideMenu = findViewById<LinearLayout>(R.id.sideMenu)
+        val menuProveedores = findViewById<TextView>(R.id.menuProveedores)
+        val menuMiCuenta = findViewById<TextView>(R.id.menuMiCuenta)
+
+        imgMenu.setOnClickListener {
+
+            if (sideMenu.visibility == View.GONE) {
+
+                sideMenu.visibility = View.VISIBLE
+
+                sideMenu.translationX = -sideMenu.width.toFloat()
+
+                sideMenu.animate()
+                    .translationX(0f)
+                    .setDuration(250)
+                    .start()
+
+            } else {
+
+                sideMenu.animate()
+                    .translationX(-sideMenu.width.toFloat())
+                    .setDuration(250)
+                    .withEndAction {
+                        sideMenu.visibility = View.GONE
+                    }
+                    .start()
+            }
+        }
+        // para el mi cuenta
+        menuMiCuenta.setOnClickListener {
+            val intent = Intent(this, MiCuenta::class.java)
+            startActivity(intent)
+        }
+        // cerra sesion
+        findViewById<TextView>(R.id.menuSalir).setOnClickListener {
+
+            AlertDialog.Builder(this)
+                .setTitle("Cerrar sesión")
+                .setMessage("¿Estás seguro de que deseas cerrar sesión?")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Salir") { _, _ ->
+
+                    Session.cerrar()
+                    CartManager.limpiar()
+
+                    val intent = Intent(this, Login::class.java)
+
+                    intent.flags =
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                                Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                    startActivity(intent)
+                    finish()
+                }
+                .show()
+        }
+        //
+
+
+        window.statusBarColor = android.graphics.Color.BLACK
+
+        window.decorView.systemUiVisibility = 0
 
         productosRepository = ProductosRepository(this)
         val bottomNavigation =
@@ -89,8 +160,8 @@ class Productos : AppCompatActivity() {
             insets
         }
         // ============================================
-// NAVEGACIÓN INFERIOR
-// ============================================
+        // NAVEGACIÓN INFERIOR
+        // ============================================
 
         bottomNavigation.selectedItemId = R.id.nav_productos
 

@@ -528,7 +528,7 @@
         android:layout_marginEnd="18dp"
         android:layout_marginBottom="10dp"
         android:contentDescription="Agregar"
-        android:src="@android:drawable/ic_input_add"
+        android:src="@drawable/qrcode"
         app:backgroundTint="#FF2A00"
         app:tint="#FFFFFF"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
@@ -558,5 +558,68 @@
         app:layout_constraintEnd_toEndOf="parent"
 
         app:menu="@menu/bottom_menu" />
+
+        <!-- ========================= -->
+        <!-- MENÚ LATERAL -->
+        <!-- ========================= -->
+
+        <LinearLayout
+            android:id="@+id/sideMenu"
+            android:layout_width="230dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#151515"
+            android:elevation="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/headerLayout"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <!-- MI CUENTA -->
+            <TextView
+                android:id="@+id/menuMiCuenta"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:text="Mi cuenta"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+
+            <!-- CATEGORÍAS -->
+            <TextView
+                android:id="@+id/menuCategorias"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:text="Categorías"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/menuProveedores"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:text="Proveedores"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+
+            <!-- SALIR -->
+            <TextView
+                android:id="@+id/menuSalir"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:text="Salir"
+                android:textColor="#FF2A00"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
