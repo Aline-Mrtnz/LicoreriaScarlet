@@ -69,6 +69,13 @@ class MainActivity : AppCompatActivity() {
         val sideMenu = findViewById<LinearLayout>(R.id.sideMenu)
         val menuProveedores = findViewById<TextView>(R.id.menuProveedores)
         val menuMiCuenta = findViewById<TextView>(R.id.menuMiCuenta)
+        val fabAdd = findViewById<FloatingActionButton>(R.id.fabAdd)
+
+        fabAdd.setOnClickListener {
+            startActivity(
+                Intent(this, QR::class.java)
+            )
+        }
 
         imgMenu.setOnClickListener {
 
@@ -401,7 +408,7 @@ class MainActivity : AppCompatActivity() {
         val fabAdd = findViewById<FloatingActionButton>(R.id.fabAdd)
 
         fabAdd.setOnClickListener {
-            startActivity(Intent(this, AgregarProducto::class.java))
+            startActivity(Intent(this, QR::class.java))
         }
 
         val verCategorias = findViewById<TextView>(R.id.idVerCategorias)
