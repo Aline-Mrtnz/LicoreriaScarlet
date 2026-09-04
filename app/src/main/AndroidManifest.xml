@@ -75,6 +75,15 @@
             android:name=".DetalleCompraActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".GestionCajeros" android:exported="false" />
+        <activity
+            android:name=".FormularioCajero"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".CajaActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest><!--

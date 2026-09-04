@@ -102,6 +102,9 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, MiCuenta::class.java)
             startActivity(intent)
         }
+        findViewById<TextView>(R.id.menuCaja).setOnClickListener {
+            startActivity(Intent(this, CajaActivity::class.java))
+        }
         // para proveedores (antes no tenía listener: era inalcanzable)
         menuProveedores.setOnClickListener {
             startActivity(Intent(this, Proveedores::class.java))
@@ -117,6 +120,9 @@ class MainActivity : AppCompatActivity() {
         // para reabastecimiento / compras (idem: sin listener)
         findViewById<TextView>(R.id.menuReabastecimiento).setOnClickListener {
             startActivity(Intent(this, Reabastecimiento::class.java))
+        }
+        findViewById<TextView>(R.id.menuCajeros).setOnClickListener {
+            startActivity(Intent(this, GestionCajeros::class.java))
         }
         // cerra sesion
         findViewById<TextView>(R.id.menuSalir).setOnClickListener {
@@ -452,7 +458,7 @@ class MainActivity : AppCompatActivity() {
     // NOTIFICACIONES
     // ============================================
 
-    private fun setupNotifications() {
+    /*private fun setupNotifications() {
 
         val notificationIcon =
             findViewById<ImageView>(R.id.imgNorificacion)
@@ -491,6 +497,9 @@ class MainActivity : AppCompatActivity() {
             badge.visibility =
                 android.view.View.GONE
         }
+    }*/
+    private fun setupNotifications() {
+        com.example.scarlet.util.AlertasUtils.configurar(this)
     }
 
     fun recargarProductos() {
@@ -507,6 +516,7 @@ class MainActivity : AppCompatActivity() {
         if (Session.esAdmin) return
 
         findViewById<TextView>(R.id.menuCategorias).visibility = android.view.View.GONE
+        findViewById<TextView>(R.id.menuCajeros).visibility = android.view.View.GONE
         findViewById<TextView>(R.id.menuProveedores).visibility = android.view.View.GONE
         findViewById<TextView>(R.id.menuInventario).visibility = android.view.View.GONE
         findViewById<TextView>(R.id.menuReabastecimiento).visibility = android.view.View.GONE

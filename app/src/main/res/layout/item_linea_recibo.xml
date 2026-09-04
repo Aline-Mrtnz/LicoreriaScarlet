@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <TextView
+        android:id="@+id/txtNombreLineaRecibo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        tools:text="Jameson Irish Whiskey"
+        xmlns:tools="http://schemas.android.com/tools" />
+
+    <TextView
+        android:id="@+id/txtCantidadLineaRecibo"
+        android:layout_width="34dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="#AAAAAA"
+        android:textSize="13sp"
+        tools:text="x2"
+        xmlns:tools="http://schemas.android.com/tools" />
+
+    <TextView
+        android:id="@+id/txtSubtotalLineaRecibo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        tools:text="Bs 120.00"
+        xmlns:tools="http://schemas.android.com/tools" />
+
+</LinearLayout>

@@ -304,7 +304,7 @@ class Ventas : AppCompatActivity() {
         }
     }
 
-    private fun setupNotifications() {
+    /*private fun setupNotifications() {
 
         val notificationIcon =
             findViewById<ImageView>(R.id.imgNorificacion)
@@ -340,5 +340,8 @@ class Ventas : AppCompatActivity() {
 
             badge.visibility = android.view.View.GONE
         }
+    }*/
+    private fun setupNotifications() {
+        com.example.scarlet.util.AlertasUtils.configurar(this)
     }
 }

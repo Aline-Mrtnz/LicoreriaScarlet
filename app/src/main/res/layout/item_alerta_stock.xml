@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/bg_stat_card"
+    android:layout_marginBottom="8dp">
+
+    <View
+        android:layout_width="4dp"
+        android:layout_height="match_parent"
+        android:background="#FF2A00" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/txtNombreAlerta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/txtDetalleAlerta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#AAAAAA"
+            android:textSize="11sp"
+            android:layout_marginTop="2dp" />
+
+        <TextView
+            android:id="@+id/btnReabastecerAlerta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reabastecer Ahora →"
+            android:textColor="#FF2A00"
+            android:textStyle="bold"
+            android:textSize="11sp"
+            android:layout_marginTop="6dp"
+            android:padding="2dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -343,4 +343,4 @@ class ComprasRepository(private val context: Context) {
         db.close()
         return Estadisticas(ordenesAbiertas, pendientePago, totalRecibido, pedidosRecibidos)
     }
-}1234
+}

@@ -274,6 +274,12 @@ class Shopping : AppCompatActivity() {
             cuentaRepository.obtenerUsuarioActual()?.idCuenta ?: 1
         }
 
+        if (com.example.scarlet.data.repository.TurnoCajaRepository(this).turnoAbierto(idCuenta) == null) {
+            Toast.makeText(this, "Debes abrir la caja antes de registrar ventas", Toast.LENGTH_LONG).show()
+            startActivity(Intent(this, CajaActivity::class.java))
+            return
+        }
+
         val resultado = ventasRepository.registrarVentaCompleta(
             fecha = FechaUtils.ahora(),
             idCliente = idCliente,

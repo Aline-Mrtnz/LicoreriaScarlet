@@ -6,9 +6,10 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.database.sqlite.SQLiteException
 import android.util.Log
+import com.example.scarlet.util.PasswordUtils
 
 class databasehelpers(context: Context) :
-    SQLiteOpenHelper(context, "LicoreriaScarlet.db", null, 8) {  // Versión 8: añade compras, detalle_compra y pagos_compra (módulo de Reabastecimiento / Compras)
+    SQLiteOpenHelper(context, "LicoreriaScarlet.db", null, 10) {  // Versión 10: añade turnos_caja (apertura/cierre y arqueo)
     companion object {
         private const val TAG = "DatabaseHelper"
 
@@ -282,6 +283,23 @@ class databasehelpers(context: Context) :
             )
             """.trimIndent()
         )
+        db.execSQL(
+            """
+            CREATE TABLE turnos_caja (
+                id_turno INTEGER PRIMARY KEY AUTOINCREMENT,
+                fecha_apertura DATETIME NOT NULL,
+                monto_apertura DECIMAL(10,2) NOT NULL DEFAULT 0,
+                fecha_cierre DATETIME,
+                monto_cierre_contado DECIMAL(10,2),
+                monto_cierre_esperado DECIMAL(10,2),
+                diferencia DECIMAL(10,2),
+                estado TEXT NOT NULL DEFAULT 'ABIERTO',
+                observacion TEXT,
+                id_cuenta INTEGER NOT NULL,
+                FOREIGN KEY (id_cuenta) REFERENCES cuenta(id_cuenta)
+            )
+            """.trimIndent()
+        )
     }
 
     // =============================================
@@ -393,7 +411,8 @@ class databasehelpers(context: Context) :
     private fun insertarCuentaAdmin(db: SQLiteDatabase, idPersona: Long, rolesIds: Map<String, Long>) {
         val values = ContentValues().apply {
             put("usuario", ADMIN_USUARIO)
-            put("clave", ADMIN_CLAVE)
+            //put("clave", ADMIN_CLAVE)
+            put("clave", PasswordUtils.hash(ADMIN_CLAVE))
             put("estado", ESTADO_ACTIVO)
             put("id_persona", idPersona)
             put("id_rol", rolesIds["Administrador"] ?: 1)
@@ -414,7 +433,8 @@ class databasehelpers(context: Context) :
         // Cuenta Vendedor
         val valuesCuenta = ContentValues().apply {
             put("usuario", "vendedor")
-            put("clave", "5678")
+            //put("clave", "5678")
+            put("clave", PasswordUtils.hash("5678"))
             put("estado", ESTADO_ACTIVO)
             put("id_persona", idPersona)
             put("id_rol", rolesIds["Vendedor"] ?: 2)
@@ -954,6 +974,7 @@ class databasehelpers(context: Context) :
             "movimientos_inventario",
             "proveedor_productos",
             "pagos_compra",
+            "turnos_caja",
             "detalle_compra",
             "detalle_venta",
             "ventas",
@@ -989,7 +1010,7 @@ class databasehelpers(context: Context) :
     // MÉTODOS DE UTILIDAD
     // =============================================
 
-    fun validarPin(pin: String): Boolean {
+    /*fun validarPin(pin: String): Boolean {
         var db: SQLiteDatabase? = null
         var cursor: android.database.Cursor? = null
         try {
@@ -1014,8 +1035,20 @@ class databasehelpers(context: Context) :
             cursor?.close()
             db?.close()
         }
+    }*/
+    fun validarPin(pin: String): Boolean {
+        val db = readableDatabase
+        val cursor = db.query("cuenta", arrayOf("clave"), "estado = ?", arrayOf(ESTADO_ACTIVO), null, null, null)
+        var valido = false
+        cursor.use {
+            while (it.moveToNext()) {
+                val guardado = it.getString(it.getColumnIndexOrThrow("clave"))
+                if (com.example.scarlet.util.PasswordUtils.verificar(pin, guardado)) { valido = true; break }
+            }
+        }
+        db.close()
+        return valido
     }
-
     fun obtenerUsuarioPorPin(pin: String): Map<String, String>? {
         var db: SQLiteDatabase? = null
         var cursor: android.database.Cursor? = null
