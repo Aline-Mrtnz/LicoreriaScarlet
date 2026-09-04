@@ -126,11 +126,27 @@ class QR : AppCompatActivity() {
 
         btnConfirmarPagoQR.setOnClickListener {
 
+            val archivoQR = File(filesDir, "qr_pago.jpg")
+            if (!archivoQR.exists()) {
+                Toast.makeText(
+                    this,
+                    "Primero selecciona/carga el código QR de cobro",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
             Toast.makeText(
                 this,
                 "Pago QR confirmado",
                 Toast.LENGTH_SHORT
             ).show()
+
+            // Le avisamos a quien nos abrió (el checkout) que el pago se
+            // confirmó, para que registre la venta con el método QR.
+            val resultado = Intent().apply { putExtra("total", total) }
+            setResult(RESULT_OK, resultado)
+            finish()
         }
     }
 

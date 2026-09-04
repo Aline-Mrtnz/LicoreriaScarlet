@@ -197,6 +197,53 @@ class ProductosRepository(private val context: Context) {
     }
 
     /**
+     * Obtiene productos por id de categoría (usado por la pantalla de
+     * Gestión de Categorías para el modal "Ver detalles").
+     */
+    fun obtenerProductosPorIdCategoria(idCategoria: Int): List<Producto> {
+        val productos = mutableListOf<Producto>()
+        val db = dbHelper.readableDatabase
+
+        val query = """
+            SELECT 
+                p.id_producto,
+                p.nombre_producto,
+                p.descripcion,
+                p.imagen,
+                p.precio_venta,
+                p.precio_mayor,
+                p.precio_compra,
+                p.stock,
+                p.stock_minimo,
+                p.estado,
+                p.id_categoria,
+                p.marcas_id_marca,
+                p.volumen_ml,
+                p.abv,
+                COALESCE(c.nombre_categoria, 'Sin categoría') AS nombre_categoria,
+                COALESCE(m.nombre_marca, 'Sin marca') AS nombre_marca
+            FROM productos p
+            LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+            LEFT JOIN marcas m ON p.marcas_id_marca = m.id_marca
+            WHERE p.estado = 'ACTIVO' AND p.id_categoria = ?
+            ORDER BY p.nombre_producto ASC
+        """.trimIndent()
+
+        val cursor = db.rawQuery(query, arrayOf(idCategoria.toString()))
+
+        try {
+            while (cursor.moveToNext()) {
+                productos.add(extraerProductoDeCursor(cursor))
+            }
+        } finally {
+            cursor.close()
+            db.close()
+        }
+
+        return productos
+    }
+
+    /**
      * Obtiene productos por marca
      */
     fun obtenerProductosPorMarca(nombreMarca: String): List<Producto> {

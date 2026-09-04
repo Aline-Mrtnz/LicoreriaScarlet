@@ -229,7 +229,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
-                                android:text="$0"
+                                android:text="Bs 0"
                                 android:textColor="#FFFFFF"
                                 android:textSize="13sp"
                                 android:textStyle="bold" />
@@ -559,67 +559,89 @@
 
         app:menu="@menu/bottom_menu" />
 
-        <!-- ========================= -->
-        <!-- MENÚ LATERAL -->
-        <!-- ========================= -->
+    <!-- ========================= -->
+    <!-- MENÚ LATERAL -->
+    <!-- ========================= -->
 
-        <LinearLayout
-            android:id="@+id/sideMenu"
-            android:layout_width="230dp"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#151515"
-            android:elevation="12dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:visibility="gone"
-            app:layout_constraintTop_toBottomOf="@id/headerLayout"
-            app:layout_constraintStart_toStartOf="parent">
+    <LinearLayout
+        android:id="@+id/sideMenu"
+        android:layout_width="230dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#151515"
+        android:elevation="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout"
+        app:layout_constraintStart_toStartOf="parent">
 
-            <!-- MI CUENTA -->
-            <TextView
-                android:id="@+id/menuMiCuenta"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:gravity="center_vertical"
-                android:paddingStart="20dp"
-                android:text="Mi cuenta"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp" />
+        <!-- MI CUENTA -->
+        <TextView
+            android:id="@+id/menuMiCuenta"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Mi cuenta"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
 
-            <!-- CATEGORÍAS -->
-            <TextView
-                android:id="@+id/menuCategorias"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:gravity="center_vertical"
-                android:paddingStart="20dp"
-                android:text="Categorías"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp" />
+        <!-- CATEGORÍAS -->
+        <TextView
+            android:id="@+id/menuCategorias"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Categorías"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
 
-            <TextView
-                android:id="@+id/menuProveedores"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:gravity="center_vertical"
-                android:paddingStart="20dp"
-                android:text="Proveedores"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp" />
+        <TextView
+            android:id="@+id/menuProveedores"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Proveedores"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
 
-            <!-- SALIR -->
-            <TextView
-                android:id="@+id/menuSalir"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:gravity="center_vertical"
-                android:paddingStart="20dp"
-                android:text="Salir"
-                android:textColor="#FF2A00"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+        <!-- INVENTARIO -->
+        <TextView
+            android:id="@+id/menuInventario"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Inventario"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
 
-        </LinearLayout>
+        <!-- REABASTECIMIENTO -->
+        <TextView
+            android:id="@+id/menuReabastecimiento"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Reabastecimiento"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <!-- SALIR -->
+        <TextView
+            android:id="@+id/menuSalir"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Salir"
+            android:textColor="#FF2A00"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

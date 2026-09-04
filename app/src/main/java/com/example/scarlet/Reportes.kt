@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.scarlet.adapter.TopProductosAdapter
 import com.example.scarlet.data.repository.ReportesRepository
+import com.example.scarlet.data.repository.CuentaRepository
 import com.example.scarlet.data.repository.VentasRepository
 import com.example.scarlet.util.FechaUtils
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -33,8 +34,9 @@ class Reportes : AppCompatActivity() {
 
     private lateinit var reportesRepository: ReportesRepository
     private lateinit var ventasRepository: VentasRepository
+    private lateinit var cuentaRepository: CuentaRepository
 
-    private val formatoMoneda = NumberFormat.getCurrencyInstance(Locale.US)
+    private val formatoMoneda = java.text.DecimalFormat("Bs #,##0.00")
 
     // Ids de las 7 barras/etiquetas del gráfico "Rendimiento" en el mismo orden
     private val barIds = listOf(R.id.barDia1, R.id.barDia2, R.id.barDia3, R.id.barDia4, R.id.barDia5, R.id.barDia6, R.id.barDia7)
@@ -44,6 +46,15 @@ class Reportes : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_reports)
+
+        // Reportes es información financiera sensible: solo Administrador.
+        // Se valida aquí (y no solo ocultando el botón que lleva a esta
+        // pantalla) para que tampoco sea alcanzable por navegación directa.
+        if (!Session.esAdmin) {
+            Toast.makeText(this, "Acceso solo para administradores", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         val imgMenu = findViewById<ImageView>(R.id.imgMenu)
         val sideMenu = findViewById<LinearLayout>(R.id.sideMenu)
@@ -78,6 +89,18 @@ class Reportes : AppCompatActivity() {
         menuMiCuenta.setOnClickListener {
             val intent = Intent(this, MiCuenta::class.java)
             startActivity(intent)
+        }
+        // para proveedores (antes no tenía listener: era inalcanzable)
+        menuProveedores.setOnClickListener {
+            startActivity(Intent(this, Proveedores::class.java))
+        }
+        // para categorías
+        findViewById<TextView>(R.id.menuCategorias).setOnClickListener {
+            startActivity(Intent(this, CategoriasActivity::class.java))
+        }
+        // para inventario (existía en el layout pero sin listener: era inalcanzable)
+        findViewById<TextView>(R.id.menuInventario).setOnClickListener {
+            startActivity(Intent(this, Inventario::class.java))
         }
         // cerra sesion
 
@@ -158,11 +181,14 @@ class Reportes : AppCompatActivity() {
 
         reportesRepository = ReportesRepository(this)
         ventasRepository = VentasRepository(this)
+        cuentaRepository = CuentaRepository(this)
 
         configurarRecyclerView()
         setupFilters()
         setupBottomNavigation()
         setupNotifications()
+        cargarInformacionUsuario()
+        setupCarritoYPerfil()
 
 
         updateDataForFilter("Día")
@@ -173,6 +199,64 @@ class Reportes : AppCompatActivity() {
         super.onResume()
         updateDataForFilter(filtroActual)
         cargarGraficoRendimiento()
+        actualizarBadgeCarrito()
+    }
+
+    private fun cargarInformacionUsuario() {
+        val txtNombre = findViewById<TextView>(R.id.txtNombre)
+        val txtRol = findViewById<TextView>(R.id.txtRol)
+        try {
+            val usuarioInfo = cuentaRepository.obtenerUsuarioActual()
+            if (usuarioInfo != null) {
+                txtNombre.text = "${usuarioInfo.nombres} ${usuarioInfo.apellidos}"
+                txtRol.text = "●  ${usuarioInfo.nombreRol}"
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    // El ícono de carrito y el de perfil existían en el layout pero nunca
+    // tenían onClickListener (botones "muertos"). Se conectan aquí.
+    private fun setupCarritoYPerfil() {
+        findViewById<ImageView>(R.id.imgCarrito).setOnClickListener {
+            if (CartManager.estaVacio()) {
+                Toast.makeText(this, "Tu carrito está vacío. Agrega productos primero.", Toast.LENGTH_SHORT).show()
+            } else {
+                startActivity(Intent(this, Shopping::class.java))
+            }
+        }
+
+        findViewById<ImageView>(R.id.imgPerfil).setOnClickListener {
+            val nombre = if (Session.estaLogueado) Session.nombreCompleto else "Admin Sistema"
+            val rol = if (Session.estaLogueado) Session.rol else "Administrador"
+            AlertDialog.Builder(this)
+                .setTitle(nombre)
+                .setMessage("Rol: $rol")
+                .setPositiveButton("Cerrar sesión") { _, _ ->
+                    Session.cerrar()
+                    CartManager.limpiar()
+                    val intent = Intent(this, Login::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    finish()
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
+
+        actualizarBadgeCarrito()
+    }
+
+    private fun actualizarBadgeCarrito() {
+        val tvCartBadge = findViewById<TextView>(R.id.tvCartBadge)
+        val total = CartManager.totalItems()
+        if (total > 0) {
+            tvCartBadge.text = if (total > 99) "99+" else total.toString()
+            tvCartBadge.visibility = android.view.View.VISIBLE
+        } else {
+            tvCartBadge.visibility = android.view.View.GONE
+        }
     }
 
     private var filtroActual = "Día"

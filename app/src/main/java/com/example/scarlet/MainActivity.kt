@@ -69,13 +69,6 @@ class MainActivity : AppCompatActivity() {
         val sideMenu = findViewById<LinearLayout>(R.id.sideMenu)
         val menuProveedores = findViewById<TextView>(R.id.menuProveedores)
         val menuMiCuenta = findViewById<TextView>(R.id.menuMiCuenta)
-        val fabAdd = findViewById<FloatingActionButton>(R.id.fabAdd)
-
-        fabAdd.setOnClickListener {
-            startActivity(
-                Intent(this, QR::class.java)
-            )
-        }
 
         imgMenu.setOnClickListener {
 
@@ -109,6 +102,22 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, MiCuenta::class.java)
             startActivity(intent)
         }
+        // para proveedores (antes no tenía listener: era inalcanzable)
+        menuProveedores.setOnClickListener {
+            startActivity(Intent(this, Proveedores::class.java))
+        }
+        // para categorías
+        findViewById<TextView>(R.id.menuCategorias).setOnClickListener {
+            startActivity(Intent(this, CategoriasActivity::class.java))
+        }
+        // para inventario (existía en el layout pero sin listener: era inalcanzable)
+        findViewById<TextView>(R.id.menuInventario).setOnClickListener {
+            startActivity(Intent(this, Inventario::class.java))
+        }
+        // para reabastecimiento / compras (idem: sin listener)
+        findViewById<TextView>(R.id.menuReabastecimiento).setOnClickListener {
+            startActivity(Intent(this, Reabastecimiento::class.java))
+        }
         // cerra sesion
         findViewById<TextView>(R.id.menuSalir).setOnClickListener {
 
@@ -140,6 +149,11 @@ class MainActivity : AppCompatActivity() {
 
         bottomNavigation =
             findViewById(R.id.bottomNavigation)
+
+        // Restringe accesos de gestión (Categorías, Proveedores, Inventario,
+        // Reabastecimiento, Reportes) a solo el rol Administrador. El Cajero
+        // solo debe ver Inicio, Productos (catálogo/venta), Ventas y Mi cuenta.
+        aplicarRestriccionesPorRol()
 
         ViewCompat.setOnApplyWindowInsetsListener(
             findViewById(R.id.main)
@@ -326,8 +340,8 @@ class MainActivity : AppCompatActivity() {
         try {
             val (desde, hasta) = FechaUtils.rangoParaFiltro("Día")
             val totalHoy = ventasRepository.totalEntreFechas(desde, hasta)
-            val formato = NumberFormat.getCurrencyInstance(Locale.US)
-            findViewById<TextView>(R.id.txtVentasHoy).text = formato.format(totalHoy)
+            findViewById<TextView>(R.id.txtVentasHoy).text =
+                "Bs " + String.format(Locale("es", "BO"), "%,.2f", totalHoy)
 
             val stats = productosRepository.obtenerEstadisticasProductos()
             findViewById<TextView>(R.id.txtProductosActivos).text = (stats["total"] ?: 0).toString()
@@ -381,7 +395,7 @@ class MainActivity : AppCompatActivity() {
         val fabAdd = findViewById<FloatingActionButton>(R.id.fabAdd)
 
         fabAdd.setOnClickListener {
-            startActivity(Intent(this, QR::class.java))
+            startActivity(Intent(this, AgregarProducto::class.java))
         }
 
         val verCategorias = findViewById<TextView>(R.id.idVerCategorias)
@@ -391,7 +405,11 @@ class MainActivity : AppCompatActivity() {
 
         val imgCarrito = findViewById<ImageView>(R.id.imgCarrito)
         imgCarrito.setOnClickListener {
-            startActivity(Intent(this, Shopping::class.java))
+            if (com.example.scarlet.cart.CartManager.estaVacio()) {
+                Toast.makeText(this, "Tu carrito está vacío. Agrega productos primero.", Toast.LENGTH_SHORT).show()
+            } else {
+                startActivity(Intent(this, Shopping::class.java))
+            }
         }
 
         val imgPerfil = findViewById<ImageView>(R.id.imgPerfil)
@@ -434,48 +452,65 @@ class MainActivity : AppCompatActivity() {
     // NOTIFICACIONES
     // ============================================
 
-        private fun setupNotifications() {
+    private fun setupNotifications() {
 
-            val notificationIcon =
-                findViewById<ImageView>(R.id.imgNorificacion)
+        val notificationIcon =
+            findViewById<ImageView>(R.id.imgNorificacion)
 
-            val badge =
-                findViewById<TextView>(R.id.txtNotificationBadge)
+        val badge =
+            findViewById<TextView>(R.id.txtNotificationBadge)
 
-            val notificationCount = 3
+        val notificationCount = 3
 
-            if (notificationCount > 0) {
+        if (notificationCount > 0) {
 
-                badge.text =
-                    if (notificationCount > 99) {
-                        "99+"
-                    } else {
-                        notificationCount.toString()
-                    }
+            badge.text =
+                if (notificationCount > 99) {
+                    "99+"
+                } else {
+                    notificationCount.toString()
+                }
 
-                badge.visibility =
-                    android.view.View.VISIBLE
+            badge.visibility =
+                android.view.View.VISIBLE
 
-            } else {
+        } else {
 
-                badge.visibility =
-                    android.view.View.GONE
-            }
-
-            notificationIcon.setOnClickListener {
-
-                Toast.makeText(
-                    this,
-                    "Tienes $notificationCount nuevas notificaciones",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                badge.visibility =
-                    android.view.View.GONE
-            }
+            badge.visibility =
+                android.view.View.GONE
         }
+
+        notificationIcon.setOnClickListener {
+
+            Toast.makeText(
+                this,
+                "Tienes $notificationCount nuevas notificaciones",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            badge.visibility =
+                android.view.View.GONE
+        }
+    }
 
     fun recargarProductos() {
         cargarProductos()
+    }
+
+    /**
+     * Oculta del menú lateral y de la barra inferior las secciones de
+     * gestión (Categorías, Proveedores, Inventario, Reabastecimiento,
+     * Reportes) cuando la cuenta que inició sesión no es Administrador.
+     * El Cajero conserva Inicio, Productos, Ventas y Mi cuenta.
+     */
+    private fun aplicarRestriccionesPorRol() {
+        if (Session.esAdmin) return
+
+        findViewById<TextView>(R.id.menuCategorias).visibility = android.view.View.GONE
+        findViewById<TextView>(R.id.menuProveedores).visibility = android.view.View.GONE
+        findViewById<TextView>(R.id.menuInventario).visibility = android.view.View.GONE
+        findViewById<TextView>(R.id.menuReabastecimiento).visibility = android.view.View.GONE
+
+        bottomNavigation.menu.findItem(R.id.nav_reportes)?.isVisible = false
     }
 }

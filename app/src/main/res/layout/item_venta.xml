@@ -79,7 +79,7 @@
             android:id="@+id/txtTotalVenta"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="$0.00"
+            android:text="Bs 0.00"
             android:textColor="#FF9C9C9C"
             android:textSize="18sp"
             android:textStyle="bold" />

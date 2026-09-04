@@ -22,6 +22,7 @@ import com.example.scarlet.data.repository.VentasRepository
 import com.example.scarlet.util.FechaUtils
 import com.example.scarlet.util.Session
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.activity.result.contract.ActivityResultContracts
 import java.text.NumberFormat
 import java.util.Locale
 import android.view.ViewGroup
@@ -29,6 +30,22 @@ import android.view.View
 
 
 class Shopping : AppCompatActivity() {
+
+    // Guarda el id del método de pago QR mientras esperamos la confirmación
+    // de la pantalla QR (que se abre en una Activity aparte).
+    private var idPagoPendienteQR: Int? = null
+
+    private val qrLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { resultado ->
+        val idPago = idPagoPendienteQR
+        idPagoPendienteQR = null
+        if (resultado.resultCode == RESULT_OK && idPago != null) {
+            registrarVenta(idPago)
+        }
+        // Si el cajero canceló/volvió atrás sin confirmar, no se registra
+        // nada y el carrito sigue intacto para reintentar.
+    }
 
     private lateinit var recyclerViewCarrito: RecyclerView
     private lateinit var adapter: CartAdapter
@@ -188,8 +205,7 @@ class Shopping : AppCompatActivity() {
     }
 
     private fun formatPrice(amount: Double): String {
-        val format = NumberFormat.getCurrencyInstance(Locale.US)
-        return format.format(amount)
+        return "Bs " + String.format(Locale("es", "BO"), "%,.2f", amount)
     }
 
     private fun setupBackButton() {
@@ -230,7 +246,21 @@ class Shopping : AppCompatActivity() {
             .setTitle("Selecciona un método de pago")
             .setItems(nombres) { _, indice ->
                 val pagoSeleccionado = metodosPago[indice]
-                registrarVenta(pagoSeleccionado.id_pago)
+
+                if (pagoSeleccionado.tipo_pago.equals("QR", ignoreCase = true)) {
+                    // El pago con QR necesita que el cajero confirme en la
+                    // pantalla QR (donde se muestra el código de cobro y el
+                    // monto real a pagar) antes de registrar la venta.
+                    idPagoPendienteQR = pagoSeleccionado.id_pago
+                    val subtotal = carrito.sumOf { it.subtotal }
+                    val total = subtotal * 1.16
+                    val intent = Intent(this, QR::class.java).apply {
+                        putExtra("total", formatPrice(total))
+                    }
+                    qrLauncher.launch(intent)
+                } else {
+                    registrarVenta(pagoSeleccionado.id_pago)
+                }
             }
             .setNegativeButton("Cancelar", null)
             .show()

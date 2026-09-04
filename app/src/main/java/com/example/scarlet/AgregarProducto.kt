@@ -19,6 +19,7 @@ import com.example.scarlet.data.model.Categorias
 import com.example.scarlet.data.model.Producto
 import com.example.scarlet.data.repository.CategoriasRepository
 import com.example.scarlet.data.repository.ProductosRepository
+import com.example.scarlet.util.Session
 import java.io.File
 import java.io.FileOutputStream
 
@@ -55,6 +56,12 @@ class AgregarProducto : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_product)
+
+        if (!Session.esAdmin) {
+            Toast.makeText(this, "Acceso solo para administradores", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         productosRepository = ProductosRepository(this)
         categoriasRepository = CategoriasRepository(this)
@@ -117,7 +124,10 @@ class AgregarProducto : AppCompatActivity() {
     }
 
     private fun configurarSpinnerCategoria() {
-        categorias = categoriasRepository.listar()
+        // Solo se pueden asignar productos a categorías ACTIVAS.
+        // Las categorías inactivas quedan ocultas del flujo operativo y solo
+        // son visibles/editables dentro de Gestión de Categorías.
+        categorias = categoriasRepository.listarActivas()
 
         if (categorias.isEmpty()) {
             spinnerCategoria.adapter = crearAdapterSpinner(listOf("Sin categorías disponibles"))

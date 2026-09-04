@@ -79,6 +79,24 @@ class Ventas : AppCompatActivity() {
             val intent = Intent(this, MiCuenta::class.java)
             startActivity(intent)
         }
+        // para proveedores (antes no tenía listener: era inalcanzable)
+        menuProveedores.setOnClickListener {
+            startActivity(Intent(this, Proveedores::class.java))
+        }
+        // para categorías
+        findViewById<TextView>(R.id.menuCategorias).setOnClickListener {
+            startActivity(Intent(this, CategoriasActivity::class.java))
+        }
+        // para inventario (existía en el layout pero sin listener: era inalcanzable)
+        findViewById<TextView>(R.id.menuInventario).setOnClickListener {
+            startActivity(Intent(this, Inventario::class.java))
+        }
+        // Restringe accesos de gestión a solo el rol Administrador.
+        if (!Session.esAdmin) {
+            findViewById<TextView>(R.id.menuCategorias).visibility = View.GONE
+            menuProveedores.visibility = View.GONE
+            findViewById<TextView>(R.id.menuInventario).visibility = View.GONE
+        }
         // cerra sesion
         findViewById<TextView>(R.id.menuSalir).setOnClickListener {
 
@@ -173,6 +191,7 @@ class Ventas : AppCompatActivity() {
         cargarInformacionUsuario()
         setupBottomNavigation()
         setupNotifications()
+        setupCarritoYPerfil()
 
         val fechaLegible = SimpleDateFormat("EEEE d 'de' MMMM, yyyy", Locale("es", "ES")).format(Date())
         findViewById<TextView>(R.id.txtFechaHoy).text =
@@ -182,6 +201,50 @@ class Ventas : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         cargarVentas()
+        actualizarBadgeCarrito()
+    }
+
+    // El ícono de carrito y el de perfil existían en el layout pero nunca
+    // tenían onClickListener (botones "muertos"). Se conectan aquí.
+    private fun setupCarritoYPerfil() {
+        findViewById<ImageView>(R.id.imgCarrito).setOnClickListener {
+            if (CartManager.estaVacio()) {
+                Toast.makeText(this, "Tu carrito está vacío. Agrega productos primero.", Toast.LENGTH_SHORT).show()
+            } else {
+                startActivity(Intent(this, Shopping::class.java))
+            }
+        }
+
+        findViewById<ImageView>(R.id.imgPerfil).setOnClickListener {
+            val nombre = if (Session.estaLogueado) Session.nombreCompleto else "Admin Sistema"
+            val rol = if (Session.estaLogueado) Session.rol else "Administrador"
+            AlertDialog.Builder(this)
+                .setTitle(nombre)
+                .setMessage("Rol: $rol")
+                .setPositiveButton("Cerrar sesión") { _, _ ->
+                    Session.cerrar()
+                    CartManager.limpiar()
+                    val intent = Intent(this, Login::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    finish()
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
+
+        actualizarBadgeCarrito()
+    }
+
+    private fun actualizarBadgeCarrito() {
+        val tvCartBadge = findViewById<TextView>(R.id.tvCartBadge)
+        val total = CartManager.totalItems()
+        if (total > 0) {
+            tvCartBadge.text = if (total > 99) "99+" else total.toString()
+            tvCartBadge.visibility = View.VISIBLE
+        } else {
+            tvCartBadge.visibility = View.GONE
+        }
     }
 
     private fun cargarInformacionUsuario() {
@@ -208,7 +271,7 @@ class Ventas : AppCompatActivity() {
             val (desde, hasta) = FechaUtils.rangoParaFiltro("Día")
             val totalHoy = ventasRepository.totalEntreFechas(desde, hasta)
             findViewById<TextView>(R.id.txtRevenueHoy).text =
-                NumberFormat.getCurrencyInstance(Locale.US).format(totalHoy)
+                "Bs " + String.format(Locale("es", "BO"), "%,.2f", totalHoy)
         } catch (e: Exception) {
             e.printStackTrace()
         }

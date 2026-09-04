@@ -31,6 +31,9 @@
             android:name=".Reportes"
             android:exported="false" />
         <activity
+            android:name=".Proveedores"
+            android:exported="false" />
+        <activity
             android:name=".Temp"
             android:exported="true">
             <intent-filter>
@@ -51,6 +54,25 @@
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".QR"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".Inventario"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".CategoriasActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".Reabastecimiento"
+            android:exported="false" />
+        <activity
+            android:name=".NuevaCompra"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".DetalleCompraActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
     </application>

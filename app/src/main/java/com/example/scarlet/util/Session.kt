@@ -18,6 +18,14 @@ object Session {
     val estaLogueado: Boolean
         get() = idCuenta > 0
 
+    // El nombre exacto del rol en la tabla `roles` es "Administrador" o "Vendedor"
+    // (este último se usa como "Cajero" de cara al usuario).
+    val esAdmin: Boolean
+        get() = rol.equals("Administrador", ignoreCase = true)
+
+    val esCajero: Boolean
+        get() = !esAdmin
+
     fun iniciar(idCuenta: Int, usuario: String, nombreCompleto: String, rol: String) {
         this.idCuenta = idCuenta
         this.usuario = usuario

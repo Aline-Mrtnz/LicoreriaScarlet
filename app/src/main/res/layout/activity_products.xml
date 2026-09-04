@@ -172,12 +172,21 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
+            android:id="@+id/catChipsContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingStart="16dp"
             android:paddingEnd="16dp">
 
+            <!--
+                El chip "Todos" es fijo. Los demás chips se generan dinámicamente
+                en Productos.kt (configurarCategorias) a partir de las categorías
+                que están ACTIVAS y que ya tienen al menos un producto registrado.
+                Una categoría nueva sin productos NO aparece aquí: solo es visible
+                dentro de la pantalla de Gestión de Categorías hasta que se le
+                asigne un producto.
+            -->
             <TextView
                 android:id="@+id/catTodos"
                 android:layout_width="wrap_content"
@@ -190,70 +199,6 @@
                 android:textColor="#FFFFFF"
                 android:textSize="12sp"
                 android:layout_marginEnd="8dp" />
-
-            <TextView
-                android:id="@+id/catWhisky"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:background="@drawable/bg_category_unselected"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:gravity="center"
-                android:text="Whisky"
-                android:textColor="#777777"
-                android:textSize="12sp"
-                android:layout_marginEnd="8dp" />
-
-            <TextView
-                android:id="@+id/catTequila"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:background="@drawable/bg_category_unselected"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:gravity="center"
-                android:text="Tequila"
-                android:textColor="#777777"
-                android:textSize="12sp"
-                android:layout_marginEnd="8dp" />
-
-            <TextView
-                android:id="@+id/catCognac"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:background="@drawable/bg_category_unselected"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:gravity="center"
-                android:text="Cognac"
-                android:textColor="#777777"
-                android:textSize="12sp"
-                android:layout_marginEnd="8dp" />
-
-            <TextView
-                android:id="@+id/catVodka"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:background="@drawable/bg_category_unselected"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:gravity="center"
-                android:text="Vodka"
-                android:textColor="#777777"
-                android:textSize="12sp"
-                android:layout_marginEnd="8dp" />
-
-            <TextView
-                android:id="@+id/catChampagne"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:background="@drawable/bg_category_unselected"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:gravity="center"
-                android:text="Champagne"
-                android:textColor="#777777"
-                android:textSize="12sp" />
 
         </LinearLayout>
 
@@ -364,6 +309,17 @@
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
 
+        <!-- INVENTARIO -->
+        <TextView
+            android:id="@+id/menuInventario"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Inventario"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
         <TextView
             android:id="@+id/menuSalir"
             android:layout_width="match_parent"
@@ -378,4 +334,3 @@
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

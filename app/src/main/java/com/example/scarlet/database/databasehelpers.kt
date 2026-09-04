@@ -8,8 +8,7 @@ import android.database.sqlite.SQLiteException
 import android.util.Log
 
 class databasehelpers(context: Context) :
-    SQLiteOpenHelper(context, "LicoreriaScarlet.db", null, 5) {  // Versión 5: añade volumen_ml y abv a productos, marca opcional
-
+    SQLiteOpenHelper(context, "LicoreriaScarlet.db", null, 8) {  // Versión 8: añade compras, detalle_compra y pagos_compra (módulo de Reabastecimiento / Compras)
     companion object {
         private const val TAG = "DatabaseHelper"
 
@@ -67,7 +66,11 @@ class databasehelpers(context: Context) :
                 id_categoria INTEGER PRIMARY KEY AUTOINCREMENT,
                 nombre_categoria TEXT NOT NULL UNIQUE,
                 descripcion TEXT,
-                imagen_referencia TEXT
+                imagen_referencia TEXT,
+                etiquetas TEXT,
+                destacado INTEGER NOT NULL DEFAULT 0,
+                orden_menu INTEGER NOT NULL DEFAULT 0,
+                estado TEXT NOT NULL DEFAULT 'ACTIVO'
             )
             """.trimIndent()
         )
@@ -175,6 +178,107 @@ class databasehelpers(context: Context) :
                 id_producto INTEGER NOT NULL,
                 FOREIGN KEY (id_venta) REFERENCES ventas(id_venta),
                 FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
+            )
+            """.trimIndent()
+        )
+
+        // ---------- Gestión de Proveedores ----------
+        db.execSQL(
+            """
+            CREATE TABLE proveedores (
+                id_proveedor INTEGER PRIMARY KEY AUTOINCREMENT,
+                razon_social TEXT NOT NULL,
+                rfc_nit TEXT,
+                condicion_pago TEXT,
+                marcas_asociadas TEXT,
+                contacto_ejecutivo TEXT,
+                telefono_contacto TEXT,
+                estado TEXT NOT NULL DEFAULT 'ACTIVO',
+                fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            """.trimIndent()
+        )
+
+        db.execSQL(
+            """
+            CREATE TABLE proveedor_productos (
+                id_proveedor_producto INTEGER PRIMARY KEY AUTOINCREMENT,
+                id_proveedor INTEGER NOT NULL,
+                id_producto INTEGER NOT NULL,
+                precio_pactado DECIMAL(10,2) NOT NULL,
+                FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor),
+                FOREIGN KEY (id_producto) REFERENCES productos(id_producto),
+                UNIQUE(id_proveedor, id_producto)
+            )
+            """.trimIndent()
+        )
+
+        // ---------- Módulo de Inventario: kárdex de movimientos ----------
+        db.execSQL(
+            """
+            CREATE TABLE movimientos_inventario (
+                id_movimiento INTEGER PRIMARY KEY AUTOINCREMENT,
+                id_producto INTEGER NOT NULL,
+                tipo TEXT NOT NULL,
+                cantidad INTEGER NOT NULL,
+                stock_anterior INTEGER NOT NULL,
+                stock_nuevo INTEGER NOT NULL,
+                origen TEXT,
+                notas TEXT,
+                fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+                usuario TEXT,
+                id_proveedor INTEGER,
+                FOREIGN KEY (id_producto) REFERENCES productos(id_producto),
+                FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor)
+            )
+            """.trimIndent()
+        )
+
+        // ---------- Módulo de Reabastecimiento: órdenes de compra ----------
+        db.execSQL(
+            """
+            CREATE TABLE compras (
+                id_compra INTEGER PRIMARY KEY AUTOINCREMENT,
+                codigo TEXT NOT NULL UNIQUE,
+                fecha_emision DATETIME NOT NULL,
+                observacion TEXT,
+                estado TEXT NOT NULL DEFAULT 'PENDIENTE',
+                total DECIMAL(10,2) NOT NULL DEFAULT 0,
+                id_proveedor INTEGER NOT NULL,
+                cuenta_id_cuenta INTEGER NOT NULL,
+                FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor),
+                FOREIGN KEY (cuenta_id_cuenta) REFERENCES cuenta(id_cuenta)
+            )
+            """.trimIndent()
+        )
+
+        db.execSQL(
+            """
+            CREATE TABLE detalle_compra (
+                id_detalle_compra INTEGER PRIMARY KEY AUTOINCREMENT,
+                cantidad INTEGER NOT NULL,
+                precio_unitario DECIMAL(10,2) NOT NULL,
+                subtotal DECIMAL(10,2) NOT NULL,
+                id_compra INTEGER NOT NULL,
+                id_producto INTEGER NOT NULL,
+                FOREIGN KEY (id_compra) REFERENCES compras(id_compra),
+                FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
+            )
+            """.trimIndent()
+        )
+
+        db.execSQL(
+            """
+            CREATE TABLE pagos_compra (
+                id_pago_compra INTEGER PRIMARY KEY AUTOINCREMENT,
+                fecha DATETIME NOT NULL,
+                metodo_pago TEXT NOT NULL,
+                monto DECIMAL(10,2) NOT NULL,
+                efectivo_recibido DECIMAL(10,2),
+                observacion TEXT,
+                registrado_por TEXT,
+                id_compra INTEGER NOT NULL,
+                FOREIGN KEY (id_compra) REFERENCES compras(id_compra)
             )
             """.trimIndent()
         )
@@ -337,11 +441,15 @@ class databasehelpers(context: Context) :
             Triple("Licores", "Bebidas destiladas con sabores dulces y frutales", "ic_licor")
         )
 
-        categorias.forEach { (nombre, descripcion, imagen) ->
+        categorias.forEachIndexed { index, (nombre, descripcion, imagen) ->
             val values = ContentValues().apply {
                 put("nombre_categoria", nombre)
                 put("descripcion", descripcion)
                 put("imagen_referencia", imagen)
+                put("etiquetas", "")
+                put("destacado", 0)
+                put("orden_menu", index + 1)
+                put("estado", ESTADO_ACTIVO)
             }
             val id = db.insert("categorias", null, values)
             categoriasIds[nombre] = id
@@ -843,10 +951,16 @@ class databasehelpers(context: Context) :
 
         // Eliminar en orden inverso a la creación
         val tablas = listOf(
+            "movimientos_inventario",
+            "proveedor_productos",
+            "pagos_compra",
+            "detalle_compra",
             "detalle_venta",
             "ventas",
+            "compras",
             "reportes",
             "productos",
+            "proveedores",
             "cuenta",
             "pagos",
             "marcas",

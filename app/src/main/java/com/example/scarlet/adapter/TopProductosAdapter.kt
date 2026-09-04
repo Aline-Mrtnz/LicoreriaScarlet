@@ -15,7 +15,7 @@ class TopProductosAdapter(
     private var items: List<TopProducto>
 ) : RecyclerView.Adapter<TopProductosAdapter.TopProductoViewHolder>() {
 
-    private val format = NumberFormat.getCurrencyInstance(Locale.US)
+    private val format = java.text.DecimalFormat("Bs #,##0.00")
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TopProductoViewHolder {
         val view = LayoutInflater.from(parent.context)

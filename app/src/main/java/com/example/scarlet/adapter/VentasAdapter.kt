@@ -21,7 +21,7 @@ class VentasAdapter(
     private val obtenerLineasDeVenta: (Int) -> List<String>
 ) : RecyclerView.Adapter<VentasAdapter.VentaViewHolder>() {
 
-    private val format = NumberFormat.getCurrencyInstance(Locale.US)
+    private val format = java.text.DecimalFormat("Bs #,##0.00")
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VentaViewHolder {
         val view = LayoutInflater.from(parent.context)

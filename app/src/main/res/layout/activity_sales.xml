@@ -217,7 +217,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="$0.00"
+                        android:text="Bs 0.00"
                         android:textColor="#FF9C9C9C"
                         android:textSize="28sp"
                         android:textStyle="bold" />
@@ -314,6 +314,17 @@
             android:gravity="center_vertical"
             android:paddingStart="20dp"
             android:text="Proveedores"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <!-- INVENTARIO -->
+        <TextView
+            android:id="@+id/menuInventario"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Inventario"
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
 

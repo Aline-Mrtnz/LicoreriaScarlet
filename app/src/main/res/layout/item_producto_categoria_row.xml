@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <TextView
+        android:id="@+id/tvFilaProductoNombre"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.6"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        tools:text="Macallan 12 Double Cask 700ml" />
+
+    <TextView
+        android:id="@+id/tvFilaProductoPrecio"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.8"
+        android:textColor="#CCCCCC"
+        android:textSize="12sp"
+        tools:text="Bs 465.00" />
+
+    <TextView
+        android:id="@+id/tvFilaProductoStock"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.6"
+        android:textColor="#CCCCCC"
+        android:textSize="12sp"
+        tools:text="48" />
+
+    <TextView
+        android:id="@+id/tvFilaProductoEstado"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.9"
+        android:background="@drawable/bg_badge_activo"
+        android:gravity="center"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp"
+        android:text="ACTIVO"
+        android:textColor="#4CD964"
+        android:textSize="8sp"
+        android:textStyle="bold"
+        tools:text="ACTIVO" />
+
+</LinearLayout>

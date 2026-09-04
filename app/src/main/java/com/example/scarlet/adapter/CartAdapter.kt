@@ -26,7 +26,7 @@ class CartAdapter(
     private val onCambio: () -> Unit
 ) : RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
 
-    private val format = NumberFormat.getCurrencyInstance(Locale.US)
+    private val format = java.text.DecimalFormat("'Bs '#,##0.00")
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CartViewHolder {
         val view = LayoutInflater.from(parent.context)

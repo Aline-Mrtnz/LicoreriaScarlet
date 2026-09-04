@@ -18,7 +18,7 @@ class ProductosAdapter(
     private val onItemClick: (Producto) -> Unit
 ) : RecyclerView.Adapter<ProductosAdapter.ProductoViewHolder>() {
 
-    private val decimalFormat = DecimalFormat("$#,##0.00")
+    private val decimalFormat = DecimalFormat("Bs #,##0.00")
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductoViewHolder {
         val view = LayoutInflater.from(parent.context)

@@ -275,7 +275,7 @@
                         android:id="@+id/txtTotalVentas"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="$24,850"
+                        android:text="Bs 24,850"
                         android:textColor="#FFFFFF"
                         android:textSize="22sp"
                         android:textStyle="bold"
@@ -322,7 +322,7 @@
                         android:id="@+id/txtGanancia"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="$8,210"
+                        android:text="Bs 8,210"
                         android:textColor="#FFFFFF"
                         android:textSize="22sp"
                         android:textStyle="bold"
@@ -637,7 +637,7 @@
                         android:id="@+id/txtAvgTicket"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="$0.00"
+                        android:text="Bs 0.00"
                         android:textColor="#FFFFFF"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -964,6 +964,17 @@
             android:gravity="center_vertical"
             android:paddingStart="20dp"
             android:text="Proveedores"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <!-- INVENTARIO -->
+        <TextView
+            android:id="@+id/menuInventario"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Inventario"
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
 

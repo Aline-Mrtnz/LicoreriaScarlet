@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.scarlet.adapter.ProductosGridAdapter
 import com.example.scarlet.cart.CartManager
 import com.example.scarlet.data.model.Producto
+import com.example.scarlet.data.repository.CategoriasRepository
 import com.example.scarlet.data.repository.ProductosRepository
 import java.text.DecimalFormat
 import android.view.ViewGroup
@@ -39,9 +40,10 @@ class Productos : AppCompatActivity() {
     private lateinit var recyclerViewProductos: RecyclerView
     private lateinit var adapter: ProductosGridAdapter
     private lateinit var productosRepository: ProductosRepository
+    private lateinit var categoriasRepository: CategoriasRepository
     private lateinit var edtBuscar: EditText
     private lateinit var tvCartBadge: TextView
-    private val decimalFormat = DecimalFormat("$#,##0.00")
+    private val decimalFormat = DecimalFormat("Bs #,##0.00")
 
     private var categoriaActual: String = "Todos"
 
@@ -97,6 +99,24 @@ class Productos : AppCompatActivity() {
             val intent = Intent(this, MiCuenta::class.java)
             startActivity(intent)
         }
+        // para proveedores (antes no tenía listener: era inalcanzable)
+        menuProveedores.setOnClickListener {
+            startActivity(Intent(this, Proveedores::class.java))
+        }
+        // para categorías
+        findViewById<TextView>(R.id.menuCategorias).setOnClickListener {
+            startActivity(Intent(this, CategoriasActivity::class.java))
+        }
+        // para inventario (existía en el layout pero sin listener: era inalcanzable)
+        findViewById<TextView>(R.id.menuInventario).setOnClickListener {
+            startActivity(Intent(this, Inventario::class.java))
+        }
+        // Restringe accesos de gestión a solo el rol Administrador.
+        if (!Session.esAdmin) {
+            findViewById<TextView>(R.id.menuCategorias).visibility = View.GONE
+            menuProveedores.visibility = View.GONE
+            findViewById<TextView>(R.id.menuInventario).visibility = View.GONE
+        }
         // cerra sesion
         findViewById<TextView>(R.id.menuSalir).setOnClickListener {
 
@@ -128,6 +148,7 @@ class Productos : AppCompatActivity() {
         window.decorView.systemUiVisibility = 0
 
         productosRepository = ProductosRepository(this)
+        categoriasRepository = CategoriasRepository(this)
         val bottomNavigation =
             findViewById<BottomNavigationView>(R.id.bottomNavigation)
 
@@ -291,26 +312,78 @@ class Productos : AppCompatActivity() {
     }
 
     private fun configurarCategorias() {
-        chips = mapOf(
-            R.id.catTodos to "Todos",
-            R.id.catWhisky to "Whisky",
-            R.id.catTequila to "Tequila",
-            R.id.catCognac to "Cognac",
-            R.id.catVodka to "Vodka",
-            R.id.catChampagne to "Champagne"
-        )
+        val contenedorChips = findViewById<LinearLayout>(R.id.catChipsContainer)
+        val chipTodos = findViewById<TextView>(R.id.catTodos)
 
-        chipSeleccionado = findViewById(R.id.catTodos)
+        // Quitar cualquier chip generado dinámicamente en una carga anterior
+        // (por ejemplo al volver de Gestión de Categorías con onResume),
+        // dejando solo el chip fijo "Todos".
+        while (contenedorChips.childCount > 1) {
+            contenedorChips.removeViewAt(contenedorChips.childCount - 1)
+        }
 
-        chips.forEach { (id, nombreCategoria) ->
-            val chip = findViewById<TextView>(id)
+        val chipsMutable = mutableMapOf<Int, String>(R.id.catTodos to "Todos")
+
+        chipTodos.setOnClickListener {
+            seleccionarChip(chipTodos)
+            categoriaActual = "Todos"
+            edtBuscar.text?.clear()
+            cargarProductos()
+        }
+
+        // Solo se muestran aquí las categorías ACTIVAS que ya tienen al menos
+        // un producto registrado. Una categoría recién creada sin productos
+        // no aparece en este listado hasta que se le asigne uno.
+        val categoriasVisibles = categoriasRepository.listarVisiblesEnCatalogo()
+
+        categoriasVisibles.forEach { categoria ->
+            val nuevoId = View.generateViewId()
+            val chip = TextView(this).apply {
+                id = nuevoId
+                text = categoria.nombre_categoria
+                textSize = 12f
+                setTextColor(0xFF777777.toInt())
+                setBackgroundResource(R.drawable.bg_category_unselected)
+                gravity = android.view.Gravity.CENTER
+                setPadding(dpAProductos(16), 0, dpAProductos(16), 0)
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    dpAProductos(32)
+                )
+                params.marginEnd = dpAProductos(8)
+                layoutParams = params
+            }
+            contenedorChips.addView(chip)
+            chipsMutable[nuevoId] = categoria.nombre_categoria
+
             chip.setOnClickListener {
                 seleccionarChip(chip)
-                categoriaActual = nombreCategoria
+                categoriaActual = categoria.nombre_categoria
                 edtBuscar.text?.clear()
                 cargarProductos()
             }
         }
+
+        chips = chipsMutable
+
+        // Si la categoría que estaba seleccionada ya no está disponible
+        // (por ejemplo se desactivó desde Gestión de Categorías), volvemos a "Todos".
+        if (categoriaActual !in chipsMutable.values) {
+            categoriaActual = "Todos"
+        }
+
+        chipSeleccionado = contenedorChips.children()
+            .firstOrNull { (it as? TextView)?.text == categoriaActual } as? TextView
+            ?: chipTodos
+        seleccionarChip(chipSeleccionado!!)
+    }
+
+    private fun dpAProductos(valor: Int): Int {
+        return (valor * resources.displayMetrics.density).toInt()
+    }
+
+    private fun LinearLayout.children(): List<View> {
+        return (0 until childCount).map { getChildAt(it) }
     }
 
     private fun seleccionarChip(nuevoChip: TextView) {
@@ -366,10 +439,19 @@ class Productos : AppCompatActivity() {
 
     private fun configurarListeners() {
         findViewById<ImageView>(R.id.imgCarrito).setOnClickListener {
-            startActivity(Intent(this, Shopping::class.java))
+            if (com.example.scarlet.cart.CartManager.estaVacio()) {
+                Toast.makeText(this, "Tu carrito está vacío. Agrega productos primero.", Toast.LENGTH_SHORT).show()
+            } else {
+                startActivity(Intent(this, Shopping::class.java))
+            }
         }
-        findViewById<ImageView>(R.id.btnAddProducto).setOnClickListener {
-            agregarProductoLauncher.launch(Intent(this, AgregarProducto::class.java))
+        findViewById<ImageView>(R.id.btnAddProducto).apply {
+            // Cajero no puede dar de alta productos: se oculta el botón y,
+            // como refuerzo, AgregarProducto también valida el rol al abrir.
+            visibility = if (Session.esAdmin) View.VISIBLE else View.GONE
+            setOnClickListener {
+                agregarProductoLauncher.launch(Intent(this@Productos, AgregarProducto::class.java))
+            }
         }
     }
 
