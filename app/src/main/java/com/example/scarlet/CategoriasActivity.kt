@@ -37,6 +37,9 @@ import com.example.scarlet.util.ImagenUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.text.DecimalFormat
+import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 class CategoriasActivity : AppCompatActivity() {
 
@@ -74,6 +77,35 @@ class CategoriasActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_categorias)
+        val header = findViewById<View>(R.id.headerLayout)
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+            findViewById(R.id.headerLayout)
+        ) { _, insets ->
+
+            val systemBars =
+                insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                )
+
+            val headerParams =
+                header.layoutParams as ViewGroup.MarginLayoutParams
+
+            headerParams.height =
+                (82 * resources.displayMetrics.density).toInt() +
+                        systemBars.top
+
+            header.layoutParams = headerParams
+
+            header.setPadding(
+                header.paddingLeft,
+                systemBars.top,
+                header.paddingRight,
+                header.paddingBottom
+            )
+
+            insets
+        }
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { NavegacionOrigen.volverAOrigen(this) }
 
         if (!Session.esAdmin) {

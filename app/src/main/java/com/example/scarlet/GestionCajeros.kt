@@ -22,6 +22,9 @@ import com.example.scarlet.adapter.CajerosAdapter
 import com.example.scarlet.data.repository.CajeroInfo
 import com.example.scarlet.data.repository.CuentaRepository
 import com.example.scarlet.util.Session
+import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 /**
  * Pantalla de gestión de cuentas de Cajero. Sigue el mismo diseño y
@@ -48,6 +51,36 @@ class GestionCajeros : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_gestion_cajeros)
+        val header = findViewById<View>(R.id.headerLayout)
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+            findViewById(R.id.headerLayout)
+        ) { _, insets ->
+
+            val systemBars =
+                insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                )
+
+            val headerParams =
+                header.layoutParams as ViewGroup.MarginLayoutParams
+
+            headerParams.height =
+                (82 * resources.displayMetrics.density).toInt() +
+                        systemBars.top
+
+            header.layoutParams = headerParams
+
+            header.setPadding(
+                header.paddingLeft,
+                systemBars.top,
+                header.paddingRight,
+                header.paddingBottom
+            )
+
+            insets
+        }
+
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { NavegacionOrigen.volverAOrigen(this) }
 
         if (!Session.esAdmin) {

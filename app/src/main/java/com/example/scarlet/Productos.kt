@@ -176,9 +176,14 @@ class Productos : AppCompatActivity() {
 
         productosRepository = ProductosRepository(this)
         categoriasRepository = CategoriasRepository(this)
+        val header = findViewById<View>(R.id.headerLayout)
+
         val bottomNavigation =
             findViewById<BottomNavigationView>(R.id.bottomNavigation)
 
+
+
+        //
         ViewCompat.setOnApplyWindowInsetsListener(
             findViewById(R.id.main)
         ) { _, insets ->
@@ -187,6 +192,31 @@ class Productos : AppCompatActivity() {
                 insets.getInsets(
                     WindowInsetsCompat.Type.systemBars()
                 )
+
+            // ===============================
+            // HEADER
+            // ===============================
+
+            val headerParams =
+                header.layoutParams as ViewGroup.MarginLayoutParams
+
+            headerParams.height =
+                (82 * resources.displayMetrics.density).toInt() +
+                        systemBars.top
+
+            header.layoutParams = headerParams
+
+            header.setPadding(
+                header.paddingLeft,
+                systemBars.top,
+                header.paddingRight,
+                header.paddingBottom
+            )
+
+
+            // ===============================
+            // MENU INFERIOR
+            // ===============================
 
             val bottomParams =
                 bottomNavigation.layoutParams
@@ -207,6 +237,7 @@ class Productos : AppCompatActivity() {
 
             insets
         }
+        //
         // ============================================
         // NAVEGACIÓN INFERIOR
         // ============================================

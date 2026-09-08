@@ -174,6 +174,7 @@ class MainActivity : AppCompatActivity() {
         // Productos (catálogo/venta), Ventas y Mi cuenta.
         aplicarRestriccionesPorRol()
 
+        //
         ViewCompat.setOnApplyWindowInsetsListener(
             findViewById(R.id.main)
         ) { _, insets ->
@@ -227,6 +228,7 @@ class MainActivity : AppCompatActivity() {
 
             insets
         }
+        //
 
         // Inicializar repositorios
         productosRepository = ProductosRepository(this)

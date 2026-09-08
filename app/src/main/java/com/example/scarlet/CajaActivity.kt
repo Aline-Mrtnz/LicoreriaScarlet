@@ -18,6 +18,9 @@ import com.example.scarlet.data.repository.ResultadoTurno
 import com.example.scarlet.data.repository.TurnoCajaRepository
 import com.example.scarlet.util.Session
 import java.util.Locale
+import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 class CajaActivity : AppCompatActivity() {
 
@@ -27,6 +30,36 @@ class CajaActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_caja)
+
+        val header = findViewById<View>(R.id.headerLayout)
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+            findViewById(R.id.headerLayout)
+        ) { _, insets ->
+
+            val systemBars =
+                insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                )
+
+            val headerParams =
+                header.layoutParams as ViewGroup.MarginLayoutParams
+
+            headerParams.height =
+                (82 * resources.displayMetrics.density).toInt() +
+                        systemBars.top
+
+            header.layoutParams = headerParams
+
+            header.setPadding(
+                header.paddingLeft,
+                systemBars.top,
+                header.paddingRight,
+                header.paddingBottom
+            )
+
+            insets
+        }
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { NavegacionOrigen.volverAOrigen(this) }
 
         turnoCajaRepository = TurnoCajaRepository(this)
@@ -136,6 +169,10 @@ class CajaActivity : AppCompatActivity() {
                 }
                 .show()
         }
+
+
+
+
     }
 
     override fun onResume() {
