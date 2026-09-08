@@ -20,6 +20,7 @@
         android:layout_height="42dp"
         android:layout_marginTop="4dp"
         android:background="@drawable/bg_form_field"
+        android:popupBackground="@drawable/bg_spinner_popup"
         android:spinnerMode="dropdown" />
 
     <LinearLayout

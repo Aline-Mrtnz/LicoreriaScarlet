@@ -60,7 +60,7 @@ class ProveedoresAdapter(
 
             tvRazonSocial.text = proveedor.razonSocial
 
-            val rfc = if (proveedor.rfcNit.isNotBlank()) "RFC: ${proveedor.rfcNit}" else "Sin RFC"
+            val rfc = if (proveedor.rfcNit.isNotBlank()) "NIT: ${proveedor.rfcNit}" else "Sin NIT"
             val condicion = if (proveedor.condicionPago.isNotBlank()) " • ${proveedor.condicionPago}" else ""
             tvRfcCondicion.text = "$rfc$condicion"
 

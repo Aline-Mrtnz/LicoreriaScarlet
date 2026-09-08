@@ -190,6 +190,37 @@ class InventarioRepository(private val context: Context) {
         }
     }
 
+    fun obtenerMovimientosRecientes(tipo: String? = null, desde: String? = null, hasta: String? = null): List<MovimientoInventario> {
+        val lista = mutableListOf<MovimientoInventario>()
+        val db = dbHelper.readableDatabase
+        val condiciones = mutableListOf("1=1")
+        val args = mutableListOf<String>()
+
+        if (!tipo.isNullOrBlank() && tipo != "Todos los tipos") {
+            condiciones.add("m.tipo = ?"); args.add(tipo)
+        }
+        if (!desde.isNullOrBlank()) { condiciones.add("date(m.fecha) >= date(?)"); args.add(desde) }
+        if (!hasta.isNullOrBlank()) { condiciones.add("date(m.fecha) <= date(?)"); args.add(hasta) }
+
+        val query = """
+        SELECT m.id_movimiento, m.id_producto, m.tipo, m.cantidad,
+               m.stock_anterior, m.stock_nuevo, m.origen, m.notas,
+               m.fecha, m.usuario, m.id_proveedor,
+               p.nombre_producto, pr.razon_social AS nombre_proveedor
+        FROM movimientos_inventario m
+        LEFT JOIN productos p ON m.id_producto = p.id_producto
+        LEFT JOIN proveedores pr ON m.id_proveedor = pr.id_proveedor
+        WHERE ${condiciones.joinToString(" AND ")}
+        ORDER BY m.fecha DESC, m.id_movimiento DESC
+        LIMIT 200
+    """.trimIndent()
+
+        val cursor = db.rawQuery(query, args.toTypedArray())
+        try { while (cursor.moveToNext()) lista.add(extraerMovimiento(cursor)) }
+        finally { cursor.close(); db.close() }
+        return lista
+    }
+
     /**
      * Registra una salida manual de stock (ajuste, merma, reserva, etc.).
      * Devuelve false si no hay stock suficiente.

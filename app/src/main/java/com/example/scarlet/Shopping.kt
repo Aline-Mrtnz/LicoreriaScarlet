@@ -19,7 +19,9 @@ import com.example.scarlet.data.repository.CuentaRepository
 import com.example.scarlet.data.repository.PagosRepository
 import com.example.scarlet.data.repository.PersonaRepository
 import com.example.scarlet.data.repository.VentasRepository
+import com.example.scarlet.util.ComprobanteUtils
 import com.example.scarlet.util.FechaUtils
+import com.example.scarlet.util.ImpuestosUtils
 import com.example.scarlet.util.Session
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,6 +29,9 @@ import java.text.NumberFormat
 import java.util.Locale
 import android.view.ViewGroup
 import android.view.View
+import android.view.LayoutInflater
+import android.widget.LinearLayout
+import android.widget.EditText
 
 
 class Shopping : AppCompatActivity() {
@@ -189,16 +194,16 @@ class Shopping : AppCompatActivity() {
         // Calcular subtotal a partir de los items del carrito
         val subtotal = carrito.sumOf { it.subtotal }
 
-        // Calcular impuestos (16%)
-        val impuestos = subtotal * 0.16
-
-        // Calcular total
-        val total = subtotal + impuestos
+        // Los precios de catálogo ya incluyen IVA (13%) + IT (3%): el total
+        // a cobrar es exactamente la suma de los precios del carrito, sin
+        // sumar impuestos aparte. El desglose de IVA/IT es solo informativo
+        // (se extrae del precio final, no se agrega encima).
+        val desglose = ImpuestosUtils.desdeTotalConImpuestos(subtotal)
 
         // Actualizar TextViews
-        txtSubtotal.text = formatPrice(subtotal)
-        txtImpuestos.text = formatPrice(impuestos)
-        txtTotal.text = formatPrice(total)
+        txtSubtotal.text = formatPrice(desglose.subtotal)
+        txtImpuestos.text = formatPrice(desglose.impuestos)
+        txtTotal.text = formatPrice(desglose.total)
 
         val totalItems = carrito.sumOf { it.cantidad }
         tvSubtotalLabel.text = "Subtotal ($totalItems items)"
@@ -247,23 +252,87 @@ class Shopping : AppCompatActivity() {
             .setItems(nombres) { _, indice ->
                 val pagoSeleccionado = metodosPago[indice]
 
-                if (pagoSeleccionado.tipo_pago.equals("QR", ignoreCase = true)) {
-                    // El pago con QR necesita que el cajero confirme en la
-                    // pantalla QR (donde se muestra el código de cobro y el
-                    // monto real a pagar) antes de registrar la venta.
-                    idPagoPendienteQR = pagoSeleccionado.id_pago
-                    val subtotal = carrito.sumOf { it.subtotal }
-                    val total = subtotal * 1.16
-                    val intent = Intent(this, QR::class.java).apply {
-                        putExtra("total", formatPrice(total))
+                when {
+                    pagoSeleccionado.tipo_pago.equals("QR", ignoreCase = true) -> {
+                        // El pago con QR necesita que el cajero confirme en la
+                        // pantalla QR (donde se muestra el código de cobro y el
+                        // monto real a pagar, que no es editable) antes de
+                        // registrar la venta.
+                        idPagoPendienteQR = pagoSeleccionado.id_pago
+                        val subtotal = carrito.sumOf { it.subtotal }
+                        val total = subtotal
+                        val intent = Intent(this, QR::class.java).apply {
+                            putExtra("total", formatPrice(total))
+                        }
+                        qrLauncher.launch(intent)
                     }
-                    qrLauncher.launch(intent)
-                } else {
-                    registrarVenta(pagoSeleccionado.id_pago)
+                    pagoSeleccionado.tipo_pago.equals("Efectivo", ignoreCase = true) -> {
+                        // En efectivo se mantiene el flujo actual: se registra
+                        // directo (registrarVenta ya exige que la caja esté
+                        // abierta antes de continuar).
+                        registrarVenta(pagoSeleccionado.id_pago)
+                    }
+                    else -> {
+                        // Cualquier otro método (Tarjeta de Crédito, Tarjeta de
+                        // Débito, Transferencia, etc.): el monto a depositar
+                        // debe ser exactamente el total de la compra, sin
+                        // permitir registrar un monto distinto.
+                        mostrarConfirmacionPagoElectronico(pagoSeleccionado.id_pago, pagoSeleccionado.tipo_pago)
+                    }
                 }
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    /**
+     * Confirmación previa para métodos de pago electrónicos (todo lo que no
+     * sea Efectivo ni QR): el campo viene prellenado con el total exacto de
+     * la compra y se valida que lo que se confirme coincida con ese total
+     * (no se permite un monto mayor ni menor) antes de registrar la venta.
+     */
+    private fun mostrarConfirmacionPagoElectronico(idPago: Int, nombreMetodo: String) {
+        val total = carrito.sumOf { it.subtotal }
+        val vista = LayoutInflater.from(this).inflate(R.layout.dialog_confirmar_pago_electronico, null)
+
+        vista.findViewById<TextView>(R.id.txtTituloPagoElectronico).text = "Confirmar pago con $nombreMetodo"
+
+        val edtMonto = vista.findViewById<EditText>(R.id.edtMontoPagoElectronico)
+        //edtMonto.setText(String.format(Locale("es", "BO"), "%.2f", total))
+        edtMonto.setText(String.format(Locale.US, "%.2f", total))
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(vista)
+            .setCancelable(true)
+            .create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        vista.findViewById<TextView>(R.id.btnCancelarPagoElectronico).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        vista.findViewById<TextView>(R.id.btnConfirmarPagoElectronico).setOnClickListener {
+            //val monto = edtMonto.text.toString().toDoubleOrNull()
+            val monto = edtMonto.text.toString().replace(",", ".").toDoubleOrNull()
+            if (monto == null) {
+                Toast.makeText(this, "Ingresa un monto válido", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            // Tolerancia mínima para evitar falsos negativos por redondeo de
+            // centavos (comparación de Double).
+            if (Math.abs(monto - total) > 0.009) {
+                Toast.makeText(
+                    this,
+                    "Debes depositar exactamente ${formatPrice(total)}, ni más ni menos",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
+            dialog.dismiss()
+            registrarVenta(idPago)
+        }
+
+        dialog.show()
     }
 
     private fun registrarVenta(idPago: Int) {
@@ -280,8 +349,24 @@ class Shopping : AppCompatActivity() {
             return
         }
 
+        val fechaVenta = FechaUtils.ahora()
+
+        // Guardamos una copia del carrito y de los datos de la venta ANTES de
+        // registrarla, porque registrarVentaCompleta() no nos devuelve el
+        // detalle y CartManager.limpiar() vacía la lista original.
+        val itemsRecibo = carrito.map { Triple(it.nombre, it.cantidad, it.subtotal) }
+        val subtotalRecibo = carrito.sumOf { it.subtotal }
+        // Los precios ya incluyen IVA+IT, así que el total cobrado es el
+        // mismo subtotalRecibo; el desglose solo separa cuánto de ese monto
+        // corresponde a impuestos (no se suma nada extra).
+        val desglose = ImpuestosUtils.desdeTotalConImpuestos(subtotalRecibo)
+        val nombreCliente = personaRepository.obtenerPorId(idCliente)
+            ?.let { "${it.nombres} ${it.apellidos}" } ?: "Cliente Mostrador"
+        val nombreMetodoPago = pagosRepository.obtenerPorId(idPago)?.tipo_pago ?: "-"
+        val nombreCajero = if (Session.estaLogueado) Session.nombreCompleto else "Admin Sistema"
+
         val resultado = ventasRepository.registrarVentaCompleta(
-            fecha = FechaUtils.ahora(),
+            fecha = fechaVenta,
             idCliente = idCliente,
             idPago = idPago,
             idCuenta = idCuenta,
@@ -293,10 +378,18 @@ class Shopping : AppCompatActivity() {
                 CartManager.limpiar()
                 adapter.notifyDataSetChanged()
                 actualizarVista()
-                Toast.makeText(this, "¡Venta registrada correctamente!", Toast.LENGTH_LONG).show()
-                val intent = Intent(this, Ventas::class.java)
-                startActivity(intent)
-                finish()
+                mostrarReciboVenta(
+                    idVenta = resultado.idVenta.toInt(),
+                    fecha = fechaVenta,
+                    cliente = nombreCliente,
+                    cajero = nombreCajero,
+                    metodoPago = nombreMetodoPago,
+                    items = itemsRecibo,
+                    subtotal = desglose.subtotal,
+                    iva = desglose.iva,
+                    impuestoIt = desglose.it,
+                    total = desglose.total
+                )
             }
             is VentasRepository.ResultadoVenta.SinStock -> {
                 Toast.makeText(
@@ -309,6 +402,77 @@ class Shopping : AppCompatActivity() {
                 Toast.makeText(this, "Error al registrar la venta: ${resultado.mensaje}", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    /**
+     * Muestra el recibo de la venta recién registrada (requisito: recibo tras
+     * cada venta). Desde aquí el cajero puede imprimir/guardar el comprobante
+     * como PDF y luego continuar hacia el historial de Ventas.
+     */
+    private fun mostrarReciboVenta(
+        idVenta: Int,
+        fecha: String,
+        cliente: String,
+        cajero: String,
+        metodoPago: String,
+        items: List<Triple<String, Int, Double>>,
+        subtotal: Double,
+        iva: Double,
+        impuestoIt: Double,
+        total: Double
+    ) {
+        val vista = LayoutInflater.from(this).inflate(R.layout.dialog_recibo_venta, null)
+
+        vista.findViewById<TextView>(R.id.txtNumeroReciboVenta).text = "Venta #$idVenta · Confirmada"
+        vista.findViewById<TextView>(R.id.txtFechaReciboVenta).text = "Fecha: $fecha"
+        vista.findViewById<TextView>(R.id.txtClienteReciboVenta).text = "Cliente: $cliente"
+        vista.findViewById<TextView>(R.id.txtCajeroReciboVenta).text = "Atendido por: $cajero"
+        vista.findViewById<TextView>(R.id.txtMetodoPagoReciboVenta).text = "Método de pago: $metodoPago"
+        vista.findViewById<TextView>(R.id.txtSubtotalReciboVenta).text = formatPrice(subtotal)
+        vista.findViewById<TextView>(R.id.txtIvaReciboVenta).text = formatPrice(iva)
+        vista.findViewById<TextView>(R.id.txtItReciboVenta).text = formatPrice(impuestoIt)
+        vista.findViewById<TextView>(R.id.txtTotalReciboVenta).text = formatPrice(total)
+
+        val llLineas = vista.findViewById<LinearLayout>(R.id.llLineasRecibo)
+        items.forEach { (nombre, cantidad, subtotalLinea) ->
+            val fila = LayoutInflater.from(this).inflate(R.layout.item_linea_recibo, llLineas, false)
+            val precioUnit = if (cantidad > 0) subtotalLinea / cantidad else subtotalLinea
+            fila.findViewById<TextView>(R.id.txtNombreLineaRecibo).text = nombre
+            fila.findViewById<TextView>(R.id.txtCantidadLineaRecibo).text = "x$cantidad"
+            fila.findViewById<TextView>(R.id.txtPrecioUnitLineaRecibo).text = "${formatPrice(precioUnit)} c/u"
+            fila.findViewById<TextView>(R.id.txtSubtotalLineaRecibo).text = formatPrice(subtotalLinea)
+            llLineas.addView(fila)
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(vista)
+            .setCancelable(false)
+            .create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        vista.findViewById<TextView>(R.id.btnImprimirReciboVenta).setOnClickListener {
+            ComprobanteUtils.imprimirVenta(
+                context = this,
+                idVenta = idVenta,
+                fecha = fecha,
+                cajero = cajero,
+                cliente = cliente,
+                metodoPago = metodoPago,
+                items = items,
+                subtotal = subtotal,
+                iva = iva,
+                impuestoIt = impuestoIt,
+                total = total
+            )
+        }
+
+        vista.findViewById<TextView>(R.id.btnContinuarReciboVenta).setOnClickListener {
+            dialog.dismiss()
+            startActivity(Intent(this, Ventas::class.java))
+            finish()
+        }
+
+        dialog.show()
     }
 
     private fun setupBottomNavigation() {

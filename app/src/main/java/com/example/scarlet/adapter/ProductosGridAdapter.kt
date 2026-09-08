@@ -43,6 +43,9 @@ class ProductosGridAdapter(
         private val tvPrecio: TextView = itemView.findViewById(R.id.tvPrecioProductoGrid)
         private val imgAgregar: ImageView = itemView.findViewById(R.id.imgAgregarCarritoGrid)
         private val tvDescripcionBtn: TextView = itemView.findViewById(R.id.tvDescripcionBtnGrid)
+        private val tvStock: TextView = itemView.findViewById(R.id.tvStockProductoGrid)
+        private val scrimAgotado: View = itemView.findViewById(R.id.scrimAgotadoGrid)
+        private val tvBadgeAgotado: TextView = itemView.findViewById(R.id.tvBadgeAgotadoGrid)
 
         fun bind(producto: Producto) {
             ImagenUtils.cargarEnImageView(itemView.context, ivProducto, producto.imagen)
@@ -51,7 +54,32 @@ class ProductosGridAdapter(
             tvSubtitulo.text = construirSubtitulo(producto)
             tvPrecio.text = decimalFormat.format(producto.precioVenta)
 
-            imgAgregar.setOnClickListener { onAgregarClick(producto) }
+            val sinStock = producto.stock <= 0
+
+            when {
+                sinStock -> {
+                    tvStock.text = "Agotado"
+                    tvStock.setTextColor(0xFFFF2A00.toInt())
+                }
+                producto.stock <= producto.stockMinimo -> {
+                    tvStock.text = "Stock: ${producto.stock} unid. (bajo)"
+                    tvStock.setTextColor(0xFFFF9800.toInt())
+                }
+                else -> {
+                    tvStock.text = "Stock: ${producto.stock} unid."
+                    tvStock.setTextColor(0xFF666666.toInt())
+                }
+            }
+
+            scrimAgotado.visibility = if (sinStock) View.VISIBLE else View.GONE
+            tvBadgeAgotado.visibility = if (sinStock) View.VISIBLE else View.GONE
+            itemView.alpha = if (sinStock) 0.6f else 1f
+
+            imgAgregar.alpha = if (sinStock) 0.4f else 1f
+            imgAgregar.isEnabled = !sinStock
+            imgAgregar.setOnClickListener {
+                if (!sinStock) onAgregarClick(producto)
+            }
             tvDescripcionBtn.setOnClickListener { onDescripcionClick(producto) }
             itemView.setOnClickListener { onDescripcionClick(producto) }
         }

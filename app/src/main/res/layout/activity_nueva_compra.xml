@@ -91,6 +91,7 @@
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_form_field"
+                android:popupBackground="@drawable/bg_spinner_popup"
                 android:spinnerMode="dropdown" />
 
             <TextView
@@ -189,6 +190,165 @@
                     android:textColor="#FF3B16"
                     android:textSize="17sp"
                     android:textStyle="bold" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="20dp"
+                android:background="#242424" />
+
+            <!-- ========================= -->
+            <!-- FORMA DE PAGO AL PROVEEDOR (nuevo) -->
+            <!-- Antes esta pantalla no preguntaba nada sobre el pago: la
+                 compra quedaba siempre 100% pendiente sin ninguna pista de
+                 si se pensaba pagar al contado, a crédito/cuotas, o dejando
+                 un anticipo. -->
+            <!-- ========================= -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="FORMA DE PAGO AL PROVEEDOR *"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtCondicionProveedor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Selecciona un proveedor para ver su condición de pago habitual."
+                android:textColor="#777777"
+                android:textSize="10sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/chipPagoPendiente"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_filter_selected"
+                    android:gravity="center"
+                    android:text="Todo a crédito"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/chipPagoContado"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_filter_unselected"
+                    android:gravity="center"
+                    android:text="Al contado"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/chipPagoAnticipo"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_filter_unselected"
+                    android:gravity="center"
+                    android:text="Con anticipo"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Nota para "Todo a crédito" -->
+            <TextView
+                android:id="@+id/txtNotaPagoPendiente"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="La compra quedará 100% pendiente. Podrás registrar abonos después, desde el detalle de la orden."
+                android:textColor="#555555"
+                android:textSize="10sp"
+                android:visibility="visible" />
+
+            <!-- Campos para "Al contado" / "Con anticipo" -->
+            <LinearLayout
+                android:id="@+id/layoutDatosPago"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MÉTODO DE PAGO"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <Spinner
+                    android:id="@+id/spinnerMetodoPagoInicial"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_form_field"
+                    android:popupBackground="@drawable/bg_spinner_popup"
+                    android:spinnerMode="dropdown" />
+
+                <!-- Solo visible con "Con anticipo": monto del adelanto -->
+                <LinearLayout
+                    android:id="@+id/layoutMontoAnticipo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MONTO DEL ANTICIPO (Bs)"
+                        android:textColor="#FFFFFF"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/edtMontoAnticipo"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/bg_form_field"
+                        android:hint="0.00"
+                        android:inputType="numberDecimal"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:textColor="#FFFFFF"
+                        android:textColorHint="#666666"
+                        android:textSize="13sp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/txtResumenPagoInicial"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Vas a pagar Bs 0.00 ahora. Saldo pendiente: Bs 0.00."
+                    android:textColor="#FF3B16"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
             </LinearLayout>
 
             <TextView

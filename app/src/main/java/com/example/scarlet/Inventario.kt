@@ -2,6 +2,10 @@
 
 package com.example.scarlet
 
+import com.example.scarlet.util.NavegacionOrigen
+
+import android.content.Intent
+
 import android.app.AlertDialog
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -60,6 +64,13 @@ class Inventario : AppCompatActivity() {
     private lateinit var tabExistencias: TextView
     private lateinit var tabMatriz: TextView
     private lateinit var tabAlertas: TextView
+    private lateinit var tabHistorial: TextView
+    private lateinit var layoutProductosYMatriz: LinearLayout
+    private lateinit var layoutHistorialMovimientos: LinearLayout
+    private lateinit var recyclerHistorialGlobal: RecyclerView
+    private lateinit var historialGlobalAdapter: MovimientoAdapter
+
+    private var tipoHistorialGlobal: List<String> = listOf("Todos los tipos", "ENTRADA", "SALIDA")
     private lateinit var txtInventarioVacio: TextView
 
     private var listaCompleta: List<Producto> = emptyList()
@@ -82,6 +93,7 @@ class Inventario : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_inventario)
+        findViewById<ImageView>(R.id.btnBack).setOnClickListener { NavegacionOrigen.volverAOrigen(this) }
 
         if (!Session.esAdmin) {
             Toast.makeText(this, "Acceso solo para administradores", Toast.LENGTH_SHORT).show()
@@ -106,6 +118,107 @@ class Inventario : AppCompatActivity() {
         if (intent.getBooleanExtra(EXTRA_ABRIR_ALERTAS, false)) {
             tabAlertas.performClick()
         }
+
+        val imgMenu = findViewById<ImageView>(R.id.imgMenu)
+        val sideMenu = findViewById<LinearLayout>(R.id.sideMenu)
+        val menuOverlay = findViewById<View>(R.id.viewMenuOverlay)
+        val menuProveedores = findViewById<TextView>(R.id.menuProveedores)
+        val menuMiCuenta = findViewById<TextView>(R.id.menuMiCuenta)
+
+        fun abrirMenu() {
+            menuOverlay.visibility = View.VISIBLE
+            sideMenu.visibility = View.VISIBLE
+            resaltarItemMenuActual()
+            // Se espera al siguiente frame para que sideMenu ya tenga su
+            // ancho medido (si estaba GONE, width valía 0 y el menú no
+            // se deslizaba desde fuera de la pantalla).
+            sideMenu.post {
+                sideMenu.translationX = -sideMenu.width.toFloat()
+                sideMenu.animate().translationX(0f).setDuration(250).start()
+            }
+        }
+
+        fun cerrarMenu() {
+            sideMenu.animate()
+                .translationX(-sideMenu.width.toFloat())
+                .setDuration(200)
+                .withEndAction {
+                    sideMenu.visibility = View.GONE
+                    menuOverlay.visibility = View.GONE
+                }
+                .start()
+        }
+
+        imgMenu.setOnClickListener {
+            if (sideMenu.visibility == View.GONE) abrirMenu() else cerrarMenu()
+        }
+
+        // Cualquier toque fuera del menú (en el resto de la pantalla) lo cierra
+        menuOverlay.setOnClickListener { cerrarMenu() }
+
+        // para el mi cuenta
+        menuMiCuenta.setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.cambiarModulo(this, MiCuenta::class.java)
+        }
+        // para caja
+        findViewById<TextView>(R.id.menuCaja).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.cambiarModulo(this, CajaActivity::class.java)
+        }
+        // para proveedores
+        menuProveedores.setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.cambiarModulo(this, Proveedores::class.java)
+        }
+        // para categorías
+        findViewById<TextView>(R.id.menuCategorias).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.cambiarModulo(this, CategoriasActivity::class.java)
+        }
+        // para inventario
+        findViewById<TextView>(R.id.menuInventario).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.cambiarModulo(this, Inventario::class.java)
+        }
+        // para reabastecimiento / compras
+        findViewById<TextView>(R.id.menuReabastecimiento).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.cambiarModulo(this, Reabastecimiento::class.java)
+        }
+        // para cuentas de cajero
+        findViewById<TextView>(R.id.menuCajeros).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.cambiarModulo(this, GestionCajeros::class.java)
+        }
+        // Restringe accesos de gestión a solo el rol Administrador.
+        if (!Session.esAdmin) {
+            findViewById<TextView>(R.id.menuCategorias).visibility = View.GONE
+            menuProveedores.visibility = View.GONE
+            findViewById<TextView>(R.id.menuInventario).visibility = View.GONE
+            findViewById<TextView>(R.id.menuReabastecimiento).visibility = View.GONE
+            findViewById<TextView>(R.id.menuCajeros).visibility = View.GONE
+        }
+        // cerrar sesión
+        findViewById<TextView>(R.id.menuSalir).setOnClickListener {
+            cerrarMenu()
+            AlertDialog.Builder(this)
+                .setTitle("Cerrar sesión")
+                .setMessage("¿Estás seguro de que deseas cerrar sesión?")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Salir") { _, _ ->
+                    Session.cerrar()
+                    com.example.scarlet.cart.CartManager.limpiar()
+                    val intent = Intent(this, Login::class.java)
+                    intent.flags =
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                                Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    finish()
+                }
+                .show()
+        }
+
     }
 
     override fun onResume() {
@@ -113,13 +226,37 @@ class Inventario : AppCompatActivity() {
         // Por si se creó/editó un producto, proveedor o categoría en otra pantalla.
         cargarDatos()
     }
+    private fun resaltarItemMenuActual() {
+        // Mapea cada item del menú con la Activity a la que navega.
+        // null = no navega a otra Activity (ej. "Salir"), nunca se resalta.
+        val items = listOf(
+            findViewById<TextView>(R.id.menuMiCuenta) to MiCuenta::class.java,
+            findViewById<TextView>(R.id.menuCaja) to CajaActivity::class.java,
+            findViewById<TextView>(R.id.menuCategorias) to CategoriasActivity::class.java,
+            findViewById<TextView>(R.id.menuProveedores) to Proveedores::class.java,
+            findViewById<TextView>(R.id.menuInventario) to Inventario::class.java,
+            findViewById<TextView>(R.id.menuReabastecimiento) to Reabastecimiento::class.java,
+            findViewById<TextView>(R.id.menuCajeros) to GestionCajeros::class.java
+        )
 
+        items.forEach { (item, clase) ->
+            val esActual = clase == this::class.java
+            item.setBackgroundResource(
+                if (esActual) R.drawable.bg_menu_item_selected else android.R.color.transparent
+            )
+            item.setTextColor(if (esActual) 0xFFFF3B16.toInt() else 0xFFCCCCCC.toInt())
+        }
+    }
     // =========================================================
     // VINCULACIÓN DE VISTAS
     // =========================================================
     private fun vincularVistas() {
-        findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
+        findViewById<ImageView>(R.id.btnBack).setOnClickListener { NavegacionOrigen.volverAOrigen(this) }
 
+        tabHistorial = findViewById(R.id.tabHistorial)
+        layoutProductosYMatriz = findViewById(R.id.layoutProductosYMatriz)
+        layoutHistorialMovimientos = findViewById(R.id.layoutHistorialMovimientos)
+        recyclerHistorialGlobal = findViewById(R.id.recyclerHistorialGlobal)
         recyclerInventario = findViewById(R.id.recyclerInventario)
         edtBuscar = findViewById(R.id.edtBuscarInventario)
         spinnerCategoria = findViewById(R.id.spinnerCategoriaInventario)
@@ -144,6 +281,18 @@ class Inventario : AppCompatActivity() {
             onEliminar = { producto -> mostrarDialogoConfirmarEliminar(producto) },
             onToggleActivo = { producto, activo -> cambiarEstadoProducto(producto, activo) }
         )
+        historialGlobalAdapter = MovimientoAdapter(emptyList())
+        recyclerHistorialGlobal.layoutManager = LinearLayoutManager(this)
+        recyclerHistorialGlobal.adapter = historialGlobalAdapter
+
+        val spinnerTipoHistorial = findViewById<Spinner>(R.id.spinnerTipoHistorialGlobal)
+        spinnerTipoHistorial.adapter = crearAdapterSpinner(tipoHistorialGlobal)
+        spinnerTipoHistorial.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p: android.widget.AdapterView<*>?, v: View?, pos: Int, id: Long) = cargarHistorialGlobal()
+            override fun onNothingSelected(p: android.widget.AdapterView<*>?) {}
+        }
+// (para Desde/Hasta usa un DatePickerDialog al hacer click en edtDesdeHistorial/edtHastaHistorial y llama cargarHistorialGlobal() al elegir fecha)
+
         recyclerInventario.layoutManager = LinearLayoutManager(this)
         recyclerInventario.adapter = adapter
     }
@@ -185,6 +334,8 @@ class Inventario : AppCompatActivity() {
         }
 
         tabExistencias.setOnClickListener {
+            layoutProductosYMatriz.visibility = View.VISIBLE
+            layoutHistorialMovimientos.visibility = View.GONE
             seleccionarTab(tabExistencias)
             chipSeleccionado = "Todos"
             switchSoloStockBajo.isChecked = false
@@ -192,21 +343,31 @@ class Inventario : AppCompatActivity() {
             aplicarFiltros()
         }
         tabMatriz.setOnClickListener {
+            layoutProductosYMatriz.visibility = View.VISIBLE
+            layoutHistorialMovimientos.visibility = View.GONE
             seleccionarTab(tabMatriz)
             // La "Matriz de Stock" es la misma lista con la tarjeta de resumen
             // como protagonista; no aplica un filtro adicional.
         }
         tabAlertas.setOnClickListener {
+            layoutProductosYMatriz.visibility = View.VISIBLE
+            layoutHistorialMovimientos.visibility = View.GONE
             seleccionarTab(tabAlertas)
             chipSeleccionado = "Alertas"
             switchSoloStockBajo.isChecked = true
             actualizarEstadoChips()
             aplicarFiltros()
         }
+        tabHistorial.setOnClickListener {
+            seleccionarTab(tabHistorial)
+            layoutProductosYMatriz.visibility = View.GONE
+            layoutHistorialMovimientos.visibility = View.VISIBLE
+            cargarHistorialGlobal()
+        }
     }
 
     private fun seleccionarTab(seleccionado: TextView) {
-        listOf(tabExistencias, tabMatriz, tabAlertas).forEach { tab ->
+        listOf(tabExistencias, tabMatriz, tabAlertas, tabHistorial).forEach { tab ->
             if (tab == seleccionado) {
                 tab.setBackgroundResource(R.drawable.bg_tab_selected)
                 tab.setTextColor(0xFFFFFFFF.toInt())
@@ -216,7 +377,45 @@ class Inventario : AppCompatActivity() {
             }
         }
     }
+    private fun mostrarSelectorFecha(campo: EditText, alSeleccionar: () -> Unit) {
+        val cal = java.util.Calendar.getInstance()
 
+        // Si el campo ya tiene una fecha, arranca el picker en esa fecha
+        val actual = campo.text.toString()
+        if (actual.isNotBlank()) {
+            try {
+                val f = java.text.SimpleDateFormat("yyyy-MM-dd", Locale("es", "BO")).parse(actual)
+                if (f != null) cal.time = f
+            } catch (_: Exception) {}
+        }
+
+        android.app.DatePickerDialog(
+            this,
+            R.style.DatePickerScarlet, // opcional: estilo oscuro, ver nota abajo
+            { _, year, month, day ->
+                val fecha = String.format(Locale("es", "BO"), "%04d-%02d-%02d", year, month + 1, day)
+                campo.setText(fecha)
+                alSeleccionar()
+            },
+            cal.get(java.util.Calendar.YEAR),
+            cal.get(java.util.Calendar.MONTH),
+            cal.get(java.util.Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+    private fun cargarHistorialGlobal() {
+        val tipo = tipoHistorialGlobal[findViewById<Spinner>(R.id.spinnerTipoHistorialGlobal).selectedItemPosition]
+        val desde = findViewById<EditText>(R.id.edtDesdeHistorial).text.toString().ifBlank { null }
+        val hasta = findViewById<EditText>(R.id.edtHastaHistorial).text.toString().ifBlank { null }
+        val edtDesde = findViewById<EditText>(R.id.edtDesdeHistorial)
+        val edtHasta = findViewById<EditText>(R.id.edtHastaHistorial)
+
+        edtDesde.setOnClickListener { mostrarSelectorFecha(edtDesde) { cargarHistorialGlobal() } }
+        edtHasta.setOnClickListener { mostrarSelectorFecha(edtHasta) { cargarHistorialGlobal() } }
+        val movimientos = inventarioRepository.obtenerMovimientosRecientes(tipo, desde, hasta)
+        historialGlobalAdapter.actualizar(movimientos)
+        findViewById<TextView>(R.id.txtHistorialGlobalVacio).visibility = if (movimientos.isEmpty()) View.VISIBLE else View.GONE
+        recyclerHistorialGlobal.visibility = if (movimientos.isEmpty()) View.GONE else View.VISIBLE
+    }
     private fun actualizarEstadoChips() {
         val seleccionado = R.drawable.bg_filter_selected
         val noSeleccionado = R.drawable.bg_filter_unselected
@@ -431,8 +630,10 @@ class Inventario : AppCompatActivity() {
                 Toast.makeText(this, "No se pudo registrar la compra", Toast.LENGTH_SHORT).show()
             }
         }
-
         dialog.show()
+        cargarDatos()
+        if (::layoutHistorialMovimientos.isInitialized && layoutHistorialMovimientos.visibility == View.VISIBLE)
+            cargarHistorialGlobal()
     }
 
     // =========================================================

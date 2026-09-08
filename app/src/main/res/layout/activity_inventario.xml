@@ -28,11 +28,28 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <ImageView
+            android:id="@+id/imgMenu"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="10dp"
+            android:padding="11dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/menu"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Menú" />
+
+        <ImageView
             android:id="@+id/btnBack"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:layout_marginTop="2dp"
             android:layout_marginEnd="14dp"
+            android:padding="11dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
             android:contentDescription="Volver"
             android:src="@drawable/back_arrow" />
 
@@ -189,212 +206,424 @@
                     android:textSize="11sp"
                     android:textStyle="bold" />
 
+                <TextView
+                    android:id="@+id/tabHistorial"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_tab_unselected"
+                    android:gravity="center"
+                    android:text="Historial"
+                    android:textColor="#999999"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
             </LinearLayout>
 
-            <!-- TARJETA: MATRIZ DE INVENTARIO -->
             <LinearLayout
+                android:id="@+id/layoutProductosYMatriz"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_stat_card"
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:layout_marginBottom="16dp">
+                android:orientation="vertical">
 
+                <!-- TARJETA: MATRIZ DE INVENTARIO -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:background="@drawable/bg_stat_card"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:layout_marginBottom="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Matriz de Inventario"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_filter_selected"
+                            android:paddingStart="10dp"
+                            android:paddingTop="3dp"
+                            android:paddingEnd="10dp"
+                            android:paddingBottom="3dp"
+                            android:text="LIVE"
+                            android:textColor="#FFFFFF"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Matriz de Inventario"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:layout_marginTop="4dp"
+                        android:text="Existencias activas y su valor en stock, en tiempo real."
+                        android:textColor="#777777"
+                        android:textSize="11sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/bg_filter_selected"
-                        android:paddingStart="10dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="3dp"
-                        android:text="LIVE"
+                        android:layout_marginTop="16dp"
+                        android:text="VALOR TOTAL EN STOCK"
+                        android:textColor="#777777"
+                        android:textSize="10sp"
+                        android:letterSpacing="0.05" />
+
+                    <TextView
+                        android:id="@+id/txtValorTotalStock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Bs 0.00"
                         android:textColor="#FFFFFF"
-                        android:textSize="9sp"
+                        android:textSize="24sp"
                         android:textStyle="bold" />
+
+                    <!-- CATEGORÍA -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/bg_form_field">
+
+                        <Spinner
+                            android:id="@+id/spinnerCategoriaInventario"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@null"
+                            android:paddingStart="14dp"
+                            android:paddingEnd="36dp"
+                            android:popupBackground="@drawable/bg_spinner_popup"
+                            android:spinnerMode="dropdown" />
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="end|center_vertical"
+                            android:layout_marginEnd="14dp"
+                            android:src="@drawable/ic_chevron_down" />
+
+                    </FrameLayout>
+
+                    <!-- TOGGLE STOCK BAJO -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Mostrar solo stock bajo"
+                            android:textColor="#CCCCCC"
+                            android:textSize="12sp" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchSoloStockBajo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:thumbTint="@color/switch_thumb_tint"
+                            app:trackTint="@color/switch_track_tint" />
+
+                    </LinearLayout>
+
+                    <!-- CHIPS DE FILTRO -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/chipTodos"
+                            android:layout_width="wrap_content"
+                            android:layout_height="30dp"
+                            android:background="@drawable/bg_filter_selected"
+                            android:gravity="center"
+                            android:paddingStart="14dp"
+                            android:paddingEnd="14dp"
+                            android:text="Todos (0)"
+                            android:textColor="#FFFFFF"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chipStockBajo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="30dp"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_filter_unselected"
+                            android:gravity="center"
+                            android:paddingStart="14dp"
+                            android:paddingEnd="14dp"
+                            android:text="Stock Bajo (0)"
+                            android:textColor="#999999"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chipAlertas"
+                            android:layout_width="wrap_content"
+                            android:layout_height="30dp"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_filter_unselected"
+                            android:gravity="center"
+                            android:paddingStart="14dp"
+                            android:paddingEnd="14dp"
+                            android:text="Alertas (0)"
+                            android:textColor="#999999"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:id="@+id/txtTotalChips"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0 en total"
+                            android:textColor="#666666"
+                            android:textSize="10sp" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
 
-                <TextView
+                <!-- LISTA DE PRODUCTOS -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerInventario"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Existencias activas y su valor en stock, en tiempo real."
-                    android:textColor="#777777"
-                    android:textSize="11sp" />
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_inventario_producto" />
+
+                <TextView
+                    android:id="@+id/txtInventarioVacio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="30dp"
+                    android:gravity="center"
+                    android:text="No hay productos que coincidan con los filtros."
+                    android:textColor="#666666"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+            <!-- fin layoutProductosYMatriz -->
+
+            <LinearLayout
+                android:id="@+id/layoutHistorialMovimientos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="VALOR TOTAL EN STOCK"
+                    android:text="FILTRAR TIPO"
                     android:textColor="#777777"
                     android:textSize="10sp"
-                    android:letterSpacing="0.05" />
+                    android:layout_marginBottom="6dp"/>
 
-                <TextView
-                    android:id="@+id/txtValorTotalStock"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="Bs 0.00"
-                    android:textColor="#FFFFFF"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-
-                <!-- CATEGORÍA -->
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="46dp"
-                    android:layout_marginTop="16dp"
-                    android:background="@drawable/bg_form_field">
-
+                    android:background="@drawable/bg_form_field"
+                    android:layout_marginBottom="14dp">
                     <Spinner
-                        android:id="@+id/spinnerCategoriaInventario"
+                        android:id="@+id/spinnerTipoHistorialGlobal"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@null"
-                        android:paddingStart="14dp"
-                        android:paddingEnd="36dp"
-                        android:popupBackground="@drawable/bg_spinner_popup"
-                        android:spinnerMode="dropdown" />
-
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_gravity="end|center_vertical"
-                        android:layout_marginEnd="14dp"
-                        android:src="@drawable/ic_chevron_down" />
-
+                        android:paddingStart="14dp" />
                 </FrameLayout>
 
-                <!-- TOGGLE STOCK BAJO -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="14dp">
+                    <EditText
+                        android:id="@+id/edtDesdeHistorial"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Mostrar solo stock bajo"
-                        android:textColor="#CCCCCC"
-                        android:textSize="12sp" />
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switchSoloStockBajo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:thumbTint="@color/switch_thumb_tint"
-                        app:trackTint="@color/switch_track_tint" />
-
+                        android:layout_height="46dp"
+                        android:hint="Desde"
+                        android:focusable="false"
+                        android:background="@drawable/bg_form_field"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginEnd="6dp"/>
+                    <EditText
+                        android:id="@+id/edtHastaHistorial"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="46dp"
+                        android:hint="Hasta"
+                        android:focusable="false"
+                        android:background="@drawable/bg_form_field"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginStart="6dp"/>
                 </LinearLayout>
 
-                <!-- CHIPS DE FILTRO -->
-                <LinearLayout
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerHistorialGlobal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_movimiento" />
 
-                    <TextView
-                        android:id="@+id/chipTodos"
-                        android:layout_width="wrap_content"
-                        android:layout_height="30dp"
-                        android:background="@drawable/bg_filter_selected"
-                        android:gravity="center"
-                        android:paddingStart="14dp"
-                        android:paddingEnd="14dp"
-                        android:text="Todos (0)"
-                        android:textColor="#FFFFFF"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/chipStockBajo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="30dp"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_filter_unselected"
-                        android:gravity="center"
-                        android:paddingStart="14dp"
-                        android:paddingEnd="14dp"
-                        android:text="Stock Bajo (0)"
-                        android:textColor="#999999"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/chipAlertas"
-                        android:layout_width="wrap_content"
-                        android:layout_height="30dp"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_filter_unselected"
-                        android:gravity="center"
-                        android:paddingStart="14dp"
-                        android:paddingEnd="14dp"
-                        android:text="Alertas (0)"
-                        android:textColor="#999999"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="1dp"
-                        android:layout_weight="1" />
-
-                    <TextView
-                        android:id="@+id/txtTotalChips"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0 en total"
-                        android:textColor="#666666"
-                        android:textSize="10sp" />
-
-                </LinearLayout>
-
+                <TextView
+                    android:id="@+id/txtHistorialGlobalVacio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_marginTop="20dp"
+                    android:text="No hay movimientos en el rango seleccionado."
+                    android:textColor="#666666"
+                    android:textSize="12sp"
+                    android:visibility="gone"/>
             </LinearLayout>
-
-            <!-- LISTA DE PRODUCTOS -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerInventario"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_inventario_producto" />
-
-            <TextView
-                android:id="@+id/txtInventarioVacio"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:gravity="center"
-                android:text="No hay productos que coincidan con los filtros."
-                android:textColor="#666666"
-                android:textSize="12sp"
-                android:visibility="gone" />
 
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
+
+
+    <!-- ========================= -->
+    <!-- OVERLAY DEL MENÚ LATERAL (cubre toda la pantalla para poder
+         cerrarlo tocando fuera de él) -->
+    <!-- ========================= -->
+    <View
+        android:id="@+id/viewMenuOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- ========================= -->
+    <!-- MENÚ LATERAL -->
+    <!-- ========================= -->
+
+    <LinearLayout
+        android:id="@+id/sideMenu"
+        android:layout_width="230dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#151515"
+        android:elevation="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/menuMiCuenta"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Mi cuenta"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuCaja"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Caja"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuCategorias"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Categorías"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuProveedores"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Proveedores"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuInventario"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Inventario"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuReabastecimiento"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Reabastecimiento"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuCajeros"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Cuentas de Cajero"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuSalir"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Salir"
+            android:textColor="#FF2A00"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,7 +1,10 @@
 package com.example.scarlet
 
+import com.example.scarlet.util.NavegacionOrigen
+
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
 import android.widget.ImageView
@@ -27,6 +30,8 @@ import java.util.Locale
 //
 import androidx.appcompat.app.AlertDialog
 import com.example.scarlet.util.Session
+import com.example.scarlet.util.ImpuestosUtils
+import com.example.scarlet.util.ComprobanteUtils
 import com.example.scarlet.cart.CartManager
 
 
@@ -47,58 +52,82 @@ class Ventas : AppCompatActivity() {
 
         val imgMenu = findViewById<ImageView>(R.id.imgMenu)
         val sideMenu = findViewById<LinearLayout>(R.id.sideMenu)
+        val menuOverlay = findViewById<View>(R.id.viewMenuOverlay)
         val menuProveedores = findViewById<TextView>(R.id.menuProveedores)
         val menuMiCuenta = findViewById<TextView>(R.id.menuMiCuenta)
 
-        imgMenu.setOnClickListener {
-
-            if (sideMenu.visibility == View.GONE) {
-
-                sideMenu.visibility = View.VISIBLE
-
-                sideMenu.translationX = -sideMenu.width.toFloat()
-
-                sideMenu.animate()
-                    .translationX(0f)
-                    .setDuration(250)
-                    .start()
-
-            } else {
-
-                sideMenu.animate()
-                    .translationX(-sideMenu.width.toFloat())
-                    .setDuration(250)
-                    .withEndAction {
-                        sideMenu.visibility = View.GONE
-                    }
-                    .start()
-            }
+        fun abrirMenu() {
+            menuOverlay.visibility = View.VISIBLE
+            sideMenu.visibility = View.VISIBLE
+            sideMenu.translationX = -sideMenu.width.toFloat()
+            sideMenu.animate().translationX(0f).setDuration(250).start()
+            resaltarItemMenuActual()
         }
+
+        fun cerrarMenu() {
+            sideMenu.animate()
+                .translationX(-sideMenu.width.toFloat())
+                .setDuration(200)
+                .withEndAction {
+                    sideMenu.visibility = View.GONE
+                    menuOverlay.visibility = View.GONE
+                }
+                .start()
+        }
+
+        imgMenu.setOnClickListener {
+            if (sideMenu.visibility == View.GONE) abrirMenu() else cerrarMenu()
+        }
+
+        // Cualquier toque fuera del menú (en el resto de la pantalla) lo cierra
+        menuOverlay.setOnClickListener { cerrarMenu() }
         // para el mi cuenta
         menuMiCuenta.setOnClickListener {
-            val intent = Intent(this, MiCuenta::class.java)
-            startActivity(intent)
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, MiCuenta::class.java)
+        }
+        // para caja
+        findViewById<TextView>(R.id.menuCaja).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, CajaActivity::class.java)
         }
         // para proveedores (antes no tenía listener: era inalcanzable)
         menuProveedores.setOnClickListener {
-            startActivity(Intent(this, Proveedores::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, Proveedores::class.java)
         }
         // para categorías
         findViewById<TextView>(R.id.menuCategorias).setOnClickListener {
-            startActivity(Intent(this, CategoriasActivity::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, CategoriasActivity::class.java)
         }
         // para inventario (existía en el layout pero sin listener: era inalcanzable)
         findViewById<TextView>(R.id.menuInventario).setOnClickListener {
-            startActivity(Intent(this, Inventario::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, Inventario::class.java)
+        }
+        // para reabastecimiento / compras
+        findViewById<TextView>(R.id.menuReabastecimiento).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, Reabastecimiento::class.java)
+        }
+        // para cuentas de cajero
+        findViewById<TextView>(R.id.menuCajeros).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, GestionCajeros::class.java)
         }
         // Restringe accesos de gestión a solo el rol Administrador.
         if (!Session.esAdmin) {
             findViewById<TextView>(R.id.menuCategorias).visibility = View.GONE
             menuProveedores.visibility = View.GONE
             findViewById<TextView>(R.id.menuInventario).visibility = View.GONE
+            findViewById<TextView>(R.id.menuReabastecimiento).visibility = View.GONE
+            findViewById<TextView>(R.id.menuCajeros).visibility = View.GONE
         }
         // cerra sesion
         findViewById<TextView>(R.id.menuSalir).setOnClickListener {
+
+            cerrarMenu()
 
             AlertDialog.Builder(this)
                 .setTitle("Cerrar sesión")
@@ -181,11 +210,17 @@ class Ventas : AppCompatActivity() {
         recyclerViewVentas.layoutManager = LinearLayoutManager(this)
         recyclerViewVentas.isNestedScrollingEnabled = false
 
-        adapter = VentasAdapter(emptyList()) { idVenta ->
-            detalleVentaRepository.listarPorVentaConNombre(idVenta).map { (nombre, detalle) ->
-                "${detalle.cantidad}x $nombre"
-            }
-        }
+        adapter = VentasAdapter(
+            ventas = emptyList(),
+            obtenerLineasDeVenta = { idVenta ->
+                detalleVentaRepository.listarPorVentaConNombre(idVenta).map { (nombre, detalle) ->
+                    "${detalle.cantidad}x $nombre"
+                }
+            },
+            // NUEVO: al tocar cualquier venta del historial (sin importar su
+            // fecha/hora) se abre su factura completa, con opción a imprimirla.
+            onClickVenta = { idVenta -> mostrarFacturaVenta(idVenta) }
+        )
         recyclerViewVentas.adapter = adapter
 
         cargarInformacionUsuario()
@@ -203,16 +238,33 @@ class Ventas : AppCompatActivity() {
         cargarVentas()
         actualizarBadgeCarrito()
     }
+    private fun resaltarItemMenuActual() {
+        // Mapea cada item del menú con la Activity a la que navega.
+        // null = no navega a otra Activity (ej. "Salir"), nunca se resalta.
+        val items = listOf(
+            findViewById<TextView>(R.id.menuMiCuenta) to MiCuenta::class.java,
+            findViewById<TextView>(R.id.menuCaja) to CajaActivity::class.java,
+            findViewById<TextView>(R.id.menuCategorias) to CategoriasActivity::class.java,
+            findViewById<TextView>(R.id.menuProveedores) to Proveedores::class.java,
+            findViewById<TextView>(R.id.menuInventario) to Inventario::class.java,
+            findViewById<TextView>(R.id.menuReabastecimiento) to Reabastecimiento::class.java,
+            findViewById<TextView>(R.id.menuCajeros) to GestionCajeros::class.java
+        )
 
+        items.forEach { (item, clase) ->
+            val esActual = clase == this::class.java
+            item.setBackgroundResource(
+                if (esActual) R.drawable.bg_menu_item_selected else android.R.color.transparent
+            )
+            item.setTextColor(if (esActual) 0xFFFF3B16.toInt() else 0xFFCCCCCC.toInt())
+        }
+    }
     // El ícono de carrito y el de perfil existían en el layout pero nunca
     // tenían onClickListener (botones "muertos"). Se conectan aquí.
     private fun setupCarritoYPerfil() {
-        findViewById<ImageView>(R.id.imgCarrito).setOnClickListener {
-            if (CartManager.estaVacio()) {
-                Toast.makeText(this, "Tu carrito está vacío. Agrega productos primero.", Toast.LENGTH_SHORT).show()
-            } else {
-                startActivity(Intent(this, Shopping::class.java))
-            }
+        val imgCarritoReportes = findViewById<ImageView>(R.id.imgCarrito)
+        imgCarritoReportes.setOnClickListener {
+            com.example.scarlet.util.CarritoUtils.manejarClick(this, imgCarritoReportes)
         }
 
         findViewById<ImageView>(R.id.imgPerfil).setOnClickListener {
@@ -263,17 +315,107 @@ class Ventas : AppCompatActivity() {
 
     private fun cargarVentas() {
         try {
-            val ventas = ventasRepository.listarResumen()
+            // Historial "por rol": cada cajero (y el propio admin) ve solo
+            // las ventas que él mismo registró, no las de todas las cuentas.
+            val idCuenta = Session.idCuenta
+            val ventas = ventasRepository.listarResumen(idCuenta = idCuenta)
             adapter.actualizar(ventas)
             tvSinVentas.visibility = if (ventas.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
             recyclerViewVentas.visibility = if (ventas.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
 
             val (desde, hasta) = FechaUtils.rangoParaFiltro("Día")
-            val totalHoy = ventasRepository.totalEntreFechas(desde, hasta)
+            val totalHoy = ventasRepository.totalEntreFechas(desde, hasta, idCuenta)
             findViewById<TextView>(R.id.txtRevenueHoy).text =
                 "Bs " + String.format(Locale("es", "BO"), "%,.2f", totalHoy)
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    /**
+     * Reconstruye y muestra la factura completa de CUALQUIER venta pasada
+     * (subtotal, IVA 13%, IT 3% y total), con opción de imprimirla, sin
+     * importar la fecha/hora en la que se realizó.
+     *
+     * La BD solo guarda el total final con impuestos incluidos, así que el
+     * desglose se reconstruye con [ImpuestosUtils.desdeTotalConImpuestos].
+     */
+    private fun mostrarFacturaVenta(idVenta: Int) {
+        try {
+            val factura = ventasRepository.obtenerParaFactura(idVenta)
+            if (factura == null) {
+                Toast.makeText(this, "No se encontró la venta #$idVenta", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val lineas = detalleVentaRepository.listarPorVentaConNombre(idVenta)
+            val items = lineas.map { (nombre, detalle) ->
+                Triple(nombre, detalle.cantidad, detalle.precio * detalle.cantidad)
+            }
+
+            val desglose = ImpuestosUtils.desdeTotalConImpuestos(factura.total)
+
+            val vista = LayoutInflater.from(this).inflate(R.layout.dialog_recibo_venta, null)
+            vista.findViewById<TextView>(R.id.txtNumeroReciboVenta).text = "Venta #${factura.idVenta} · Completada"
+            vista.findViewById<TextView>(R.id.txtFechaReciboVenta).text = "Fecha: ${factura.fecha}"
+            vista.findViewById<TextView>(R.id.txtClienteReciboVenta).text = "Cliente: ${factura.nombreCliente}"
+            vista.findViewById<TextView>(R.id.txtCajeroReciboVenta).text = "Atendido por: ${factura.nombreCajero}"
+            vista.findViewById<TextView>(R.id.txtMetodoPagoReciboVenta).text = "Método de pago: ${factura.metodoPago}"
+            vista.findViewById<TextView>(R.id.txtSubtotalReciboVenta).text =
+                "Bs " + String.format(Locale("es", "BO"), "%,.2f", desglose.subtotal)
+            vista.findViewById<TextView>(R.id.txtIvaReciboVenta).text =
+                "Bs " + String.format(Locale("es", "BO"), "%,.2f", desglose.iva)
+            vista.findViewById<TextView>(R.id.txtItReciboVenta).text =
+                "Bs " + String.format(Locale("es", "BO"), "%,.2f", desglose.it)
+            vista.findViewById<TextView>(R.id.txtTotalReciboVenta).text =
+                "Bs " + String.format(Locale("es", "BO"), "%,.2f", desglose.total)
+
+            val llLineas = vista.findViewById<LinearLayout>(R.id.llLineasRecibo)
+            items.forEach { (nombre, cantidad, subtotalLinea) ->
+                val fila = LayoutInflater.from(this).inflate(R.layout.item_linea_recibo, llLineas, false)
+                val precioUnit = if (cantidad > 0) subtotalLinea / cantidad else subtotalLinea
+                fila.findViewById<TextView>(R.id.txtNombreLineaRecibo).text = nombre
+                fila.findViewById<TextView>(R.id.txtCantidadLineaRecibo).text = "x$cantidad"
+                fila.findViewById<TextView>(R.id.txtPrecioUnitLineaRecibo).text =
+                    "Bs " + String.format(Locale("es", "BO"), "%,.2f", precioUnit) + " c/u"
+                fila.findViewById<TextView>(R.id.txtSubtotalLineaRecibo).text =
+                    "Bs " + String.format(Locale("es", "BO"), "%,.2f", subtotalLinea)
+                llLineas.addView(fila)
+            }
+
+            val dialog = AlertDialog.Builder(this)
+                .setView(vista)
+                .setCancelable(true)
+                .create()
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+            vista.findViewById<TextView>(R.id.btnImprimirReciboVenta).setOnClickListener {
+                ComprobanteUtils.imprimirVenta(
+                    context = this,
+                    idVenta = factura.idVenta,
+                    fecha = factura.fecha,
+                    cajero = factura.nombreCajero,
+                    cliente = factura.nombreCliente,
+                    metodoPago = factura.metodoPago,
+                    items = items,
+                    subtotal = desglose.subtotal,
+                    iva = desglose.iva,
+                    impuestoIt = desglose.it,
+                    total = desglose.total
+                )
+            }
+
+            // En el historial esto es solo consulta: el botón "Continuar"
+            // del checkout aquí simplemente cierra el diálogo.
+            vista.findViewById<TextView>(R.id.btnContinuarReciboVenta)?.apply {
+                text = "Cerrar"
+                setOnClickListener { dialog.dismiss() }
+            }
+
+            dialog.show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "No se pudo abrir la factura de la venta #$idVenta", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -304,43 +446,6 @@ class Ventas : AppCompatActivity() {
         }
     }
 
-    /*private fun setupNotifications() {
-
-        val notificationIcon =
-            findViewById<ImageView>(R.id.imgNorificacion)
-
-        val badge =
-            findViewById<TextView>(R.id.txtNotificationBadge)
-
-        val notificationCount = 3
-
-        if (notificationCount > 0) {
-
-            badge.text =
-                if (notificationCount > 99) {
-                    "99+"
-                } else {
-                    notificationCount.toString()
-                }
-
-            badge.visibility = android.view.View.VISIBLE
-
-        } else {
-
-            badge.visibility = android.view.View.GONE
-        }
-
-        notificationIcon.setOnClickListener {
-
-            Toast.makeText(
-                this,
-                "Tienes $notificationCount nuevas notificaciones",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            badge.visibility = android.view.View.GONE
-        }
-    }*/
     private fun setupNotifications() {
         com.example.scarlet.util.AlertasUtils.configurar(this)
     }

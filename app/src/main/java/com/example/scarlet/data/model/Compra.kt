@@ -13,7 +13,11 @@ data class Compra(
     val razonSocialProveedor: String? = null,
     val rfcNitProveedor: String? = null,
     val condicionPagoProveedor: String? = null,
-    val totalPagado: Double = 0.0
+    val totalPagado: Double = 0.0,
+    // NUEVO: nombre de la cuenta (admin/cajero) que registró la orden, para
+    // que el PDF de la orden de compra muestre "Registrado por" y no solo
+    // el proveedor.
+    val nombreRegistrador: String? = null
 ) {
     val saldoPendiente: Double
         get() = total - totalPagado

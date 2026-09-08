@@ -24,7 +24,18 @@ data class CajeroInfo(
     val ci: String,
     val telefono: String,
     val estado: String
-)
+) {
+    val esActivo: Boolean
+        get() = estado.equals("ACTIVO", ignoreCase = true)
+
+    // Iniciales para el avatar circular (ej. "María" + "López" -> "ML")
+    val iniciales: String
+        get() {
+            val inicialNombre = nombres.trim().firstOrNull()?.uppercaseChar()
+            val inicialApellido = apellidos.trim().firstOrNull()?.uppercaseChar()
+            return listOfNotNull(inicialNombre, inicialApellido).joinToString("").ifEmpty { "?" }
+        }
+}
 
 sealed class ResultadoCajero {
     data class Exito(val idCuenta: Long) : ResultadoCajero()
@@ -283,19 +294,38 @@ class CuentaRepository(private val context: Context) {
         }
     }
     /** Cuentas con rol "Vendedor" (mostrado como "Cajero" en la UI). Incluye inactivas para poder reactivarlas. */
-    fun listarCajeros(): List<CajeroInfo> {
+    /** Cuentas con rol "Vendedor" (mostrado como "Cajero" en la UI). Incluye inactivas para poder reactivarlas.
+     *  filtroEstado: null = todos, o "ACTIVO" / "INACTIVO"
+     *  busqueda: coincide contra nombres, apellidos, usuario o CI */
+    fun listarCajeros(filtroEstado: String? = null, busqueda: String? = null): List<CajeroInfo> {
         val lista = mutableListOf<CajeroInfo>()
         val db = dbHelper.readableDatabase
+
+        val condiciones = mutableListOf("r.nombre_rol = 'Vendedor'")
+        val args = mutableListOf<String>()
+
+        if (!filtroEstado.isNullOrBlank()) {
+            condiciones.add("c.estado = ?")
+            args.add(filtroEstado)
+        }
+
+        if (!busqueda.isNullOrBlank()) {
+            condiciones.add("(p.nombres LIKE ? OR p.apellidos LIKE ? OR c.usuario LIKE ? OR p.ci LIKE ?)")
+            val comodin = "%$busqueda%"
+            repeat(4) { args.add(comodin) }
+        }
+
+        val where = condiciones.joinToString(" AND ")
         val query = """
             SELECT c.id_cuenta, c.id_persona, c.usuario, c.estado,
                    p.nombres, p.apellidos, p.ci, p.telefono
             FROM cuenta c
             INNER JOIN persona p ON c.id_persona = p.id_persona
             INNER JOIN roles r ON c.id_rol = r.id_rol
-            WHERE r.nombre_rol = 'Vendedor'
+            WHERE $where
             ORDER BY p.nombres ASC
         """.trimIndent()
-        val cursor = db.rawQuery(query, null)
+        val cursor = db.rawQuery(query, args.toTypedArray())
         try {
             while (cursor.moveToNext()) {
                 lista.add(
@@ -316,6 +346,33 @@ class CuentaRepository(private val context: Context) {
             db.close()
         }
         return lista
+    }
+
+    /** Cuenta cuántos cajeros (rol Vendedor) hay activos e inactivos, para los chips de filtro. */
+    fun contarCajerosPorEstado(): Pair<Int, Int> {
+        val db = dbHelper.readableDatabase
+        var activos = 0
+        var inactivos = 0
+        val cursor = db.rawQuery(
+            """
+            SELECT c.estado, COUNT(*) as total
+            FROM cuenta c
+            INNER JOIN roles r ON c.id_rol = r.id_rol
+            WHERE r.nombre_rol = 'Vendedor'
+            GROUP BY c.estado
+            """.trimIndent(),
+            null
+        )
+        if (cursor.moveToFirst()) {
+            do {
+                val estado = cursor.getString(cursor.getColumnIndexOrThrow("estado"))
+                val total = cursor.getInt(cursor.getColumnIndexOrThrow("total"))
+                if (estado.equals("ACTIVO", ignoreCase = true)) activos = total else inactivos += total
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return Pair(activos, inactivos)
     }
 
     /** Crea una cuenta de Cajero (rol "Vendedor") junto con su persona asociada. Solo debe llamarse si Session.esAdmin. */

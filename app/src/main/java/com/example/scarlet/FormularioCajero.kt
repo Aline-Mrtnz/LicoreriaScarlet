@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.scarlet.data.repository.CuentaRepository
 import com.example.scarlet.data.repository.ResultadoCajero
 import com.example.scarlet.util.Session
+import com.example.scarlet.util.ValidacionesBolivia
 
 class FormularioCajero : AppCompatActivity() {
 
@@ -68,6 +69,14 @@ class FormularioCajero : AppCompatActivity() {
     private fun guardar(nombres: String, apellidos: String, ci: String, telefono: String, usuario: String, pin: String) {
         if (nombres.isEmpty() || apellidos.isEmpty() || usuario.isEmpty()) {
             Toast.makeText(this, "Completa nombres, apellidos y usuario", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (!esEdicion && !ValidacionesBolivia.esCiValido(ci)) {
+            Toast.makeText(this, ValidacionesBolivia.MENSAJE_CI, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (telefono.isNotEmpty() && !ValidacionesBolivia.esCelularValido(telefono)) {
+            Toast.makeText(this, ValidacionesBolivia.MENSAJE_CELULAR, Toast.LENGTH_SHORT).show()
             return
         }
         if ((!esEdicion && pin.length != 4) || (pin.isNotEmpty() && pin.length != 4)) {

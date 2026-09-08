@@ -70,13 +70,15 @@
                 android:layout_marginTop="14dp" android:text="CI" android:textColor="#AAAAAA" android:textSize="12sp" />
             <EditText android:id="@+id/edtCiCajero" android:layout_width="match_parent" android:layout_height="48dp"
                 android:background="@drawable/bg_stat_card" android:paddingStart="12dp" android:paddingEnd="12dp"
-                android:inputType="number" android:textColor="#FFFFFF" android:textColorHint="#555555" android:textSize="14sp" />
+                android:inputType="number" android:digits="0123456789" android:maxLength="8"
+                android:textColor="#FFFFFF" android:textColorHint="#555555" android:textSize="14sp" />
 
             <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:layout_marginTop="14dp" android:text="Teléfono" android:textColor="#AAAAAA" android:textSize="12sp" />
             <EditText android:id="@+id/edtTelefonoCajero" android:layout_width="match_parent" android:layout_height="48dp"
                 android:background="@drawable/bg_stat_card" android:paddingStart="12dp" android:paddingEnd="12dp"
-                android:inputType="phone" android:textColor="#FFFFFF" android:textColorHint="#555555" android:textSize="14sp" />
+                android:inputType="number" android:digits="0123456789" android:maxLength="8"
+                android:textColor="#FFFFFF" android:textColorHint="#555555" android:textSize="14sp" />
 
             <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:layout_marginTop="14dp" android:text="Usuario" android:textColor="#AAAAAA" android:textSize="12sp" />

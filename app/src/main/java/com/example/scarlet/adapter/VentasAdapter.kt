@@ -8,17 +8,20 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.scarlet.R
 import com.example.scarlet.data.model.VentaResumen
-import java.text.NumberFormat
-import java.util.Locale
 
 /**
  * Adaptador para el historial de ventas (pantalla Ventas). Cada fila muestra
  * el id de venta, la hora, el cliente/tipo de pago, la lista de productos
  * vendidos (resuelta aparte, ya que no viene en VentaResumen) y el total.
+ *
+ * NUEVO: toda la fila es clickeable (sin importar la fecha/hora de la
+ * venta) para poder ver/imprimir su factura completa. Ver
+ * [Ventas.mostrarFacturaVenta].
  */
 class VentasAdapter(
     private var ventas: List<VentaResumen>,
-    private val obtenerLineasDeVenta: (Int) -> List<String>
+    private val obtenerLineasDeVenta: (Int) -> List<String>,
+    private val onClickVenta: (Int) -> Unit
 ) : RecyclerView.Adapter<VentasAdapter.VentaViewHolder>() {
 
     private val format = java.text.DecimalFormat("Bs #,##0.00")
@@ -70,6 +73,10 @@ class VentasAdapter(
             }
 
             txtTotal.text = format.format(venta.total)
+
+            // Toda la tarjeta es clickeable: permite ver/imprimir la
+            // factura de esta venta sin importar cuándo se hizo.
+            itemView.setOnClickListener { onClickVenta(venta.idVenta) }
         }
     }
 }

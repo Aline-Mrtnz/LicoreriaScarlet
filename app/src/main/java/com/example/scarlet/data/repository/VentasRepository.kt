@@ -8,6 +8,7 @@ import com.example.scarlet.data.model.DetalleVenta
 import com.example.scarlet.data.model.VentaResumen
 import com.example.scarlet.data.model.Ventas
 import com.example.scarlet.database.databasehelpers
+//import com.example.scarlet.util.ImpuestosUtils
 
 class VentasRepository(context: Context) {
 
@@ -133,6 +134,12 @@ class VentasRepository(context: Context) {
             }
 
             // 2. Insertar la venta
+            // Los precios de catálogo ya incluyen IVA (13%) + IT (3%): el
+            // monto realmente cobrado es la suma de los precios del carrito,
+            // sin sumar impuestos aparte. `ImpuestosUtils.desdeTotalConImpuestos`
+            // (usado en Historial/Reportes/Comprobante) ya asume que esta
+            // columna guarda el total final con impuestos incluidos, así que
+            // aquí simplemente se guarda ese total tal cual.
             val total = items.sumOf { it.subtotal }
             val valoresVenta = ContentValues().apply {
                 put("fecha_venta", fecha)
@@ -181,30 +188,52 @@ class VentasRepository(context: Context) {
     }
 
     /**
-     * Lista de ventas ya "aplanadas" con el nombre del cliente y el tipo de
-     * pago resueltos, para mostrar en el historial de Ventas.
-     * Si [desde]/[hasta] son null, trae todas las ventas.
+     * Lista de ventas ya "aplanadas" con el nombre del cliente, el tipo de
+     * pago y el cajero que atendió resueltos, para mostrar en el historial
+     * de Ventas. Si [desde]/[hasta] son null, trae todas las ventas.
+     *
+     * [idCuenta] filtra para que un cajero solo vea SUS propias ventas
+     * (reportes por rol). Pásalo en null para traer las de todas las
+     * cuentas (vista general, solo para Administrador).
      */
-    fun listarResumen(desde: String? = null, hasta: String? = null, limite: Int? = null): List<VentaResumen> {
+    fun listarResumen(
+        desde: String? = null,
+        hasta: String? = null,
+        limite: Int? = null,
+        idCuenta: Int? = null
+    ): List<VentaResumen> {
         val lista = mutableListOf<VentaResumen>()
         val db = dbHelper.readableDatabase
 
-        val where = if (desde != null && hasta != null) "WHERE v.fecha_venta BETWEEN ? AND ?" else ""
+        val condiciones = mutableListOf<String>()
+        val args = mutableListOf<String>()
+        if (desde != null && hasta != null) {
+            condiciones.add("v.fecha_venta BETWEEN ? AND ?")
+            args.add(desde)
+            args.add(hasta)
+        }
+        if (idCuenta != null) {
+            condiciones.add("v.cuenta_id_cuenta = ?")
+            args.add(idCuenta.toString())
+        }
+        val where = if (condiciones.isNotEmpty()) "WHERE " + condiciones.joinToString(" AND ") else ""
         val limitClause = if (limite != null) "LIMIT $limite" else ""
         val query = """
             SELECT v.id_venta, v.fecha_venta, v.total, v.descuento,
                    p.nombres || ' ' || p.apellidos AS nombre_cliente,
-                   pg.tipo_pago
+                   pg.tipo_pago,
+                   pc.nombres || ' ' || pc.apellidos AS nombre_cajero
             FROM ventas v
             INNER JOIN persona p ON v.id_cliente = p.id_persona
             INNER JOIN pagos pg ON v.id_pago = pg.id_pago
+            LEFT JOIN cuenta c ON v.cuenta_id_cuenta = c.id_cuenta
+            LEFT JOIN persona pc ON c.id_persona = pc.id_persona
             $where
             ORDER BY v.fecha_venta DESC
             $limitClause
         """.trimIndent()
 
-        val args = if (desde != null && hasta != null) arrayOf(desde, hasta) else null
-        val cursor = db.rawQuery(query, args)
+        val cursor = db.rawQuery(query, if (args.isEmpty()) null else args.toTypedArray())
         if (cursor.moveToFirst()) {
             do {
                 lista.add(
@@ -214,7 +243,8 @@ class VentasRepository(context: Context) {
                         total = cursor.getDouble(cursor.getColumnIndexOrThrow("total")),
                         descuento = cursor.getDouble(cursor.getColumnIndexOrThrow("descuento")),
                         nombreCliente = cursor.getString(cursor.getColumnIndexOrThrow("nombre_cliente")),
-                        tipoPago = cursor.getString(cursor.getColumnIndexOrThrow("tipo_pago"))
+                        tipoPago = cursor.getString(cursor.getColumnIndexOrThrow("tipo_pago")),
+                        nombreCajero = cursor.getString(cursor.getColumnIndexOrThrow("nombre_cajero")) ?: "-"
                     )
                 )
             } while (cursor.moveToNext())
@@ -224,13 +254,16 @@ class VentasRepository(context: Context) {
         return lista
     }
 
-    /** Total vendido entre dos fechas (formato yyyy-MM-dd HH:mm:ss). */
-    fun totalEntreFechas(desde: String, hasta: String): Double {
+    /**
+     * Total vendido entre dos fechas (formato yyyy-MM-dd HH:mm:ss).
+     * [idCuenta] filtra por cajero/admin dueño de la venta; null = todas las
+     * cuentas (vista general).
+     */
+    fun totalEntreFechas(desde: String, hasta: String, idCuenta: Int? = null): Double {
         val db = dbHelper.readableDatabase
-        val cursor = db.rawQuery(
-            "SELECT COALESCE(SUM(total), 0) FROM ventas WHERE fecha_venta BETWEEN ? AND ?",
-            arrayOf(desde, hasta)
-        )
+        val where = "fecha_venta BETWEEN ? AND ?" + if (idCuenta != null) " AND cuenta_id_cuenta = ?" else ""
+        val args = if (idCuenta != null) arrayOf(desde, hasta, idCuenta.toString()) else arrayOf(desde, hasta)
+        val cursor = db.rawQuery("SELECT COALESCE(SUM(total), 0) FROM ventas WHERE $where", args)
         var total = 0.0
         if (cursor.moveToFirst()) total = cursor.getDouble(0)
         cursor.close()
@@ -239,16 +272,18 @@ class VentasRepository(context: Context) {
     }
 
     /** Ganancia (venta - costo) entre dos fechas, según detalle_venta y precio_compra. */
-    fun gananciaEntreFechas(desde: String, hasta: String): Double {
+    fun gananciaEntreFechas(desde: String, hasta: String, idCuenta: Int? = null): Double {
         val db = dbHelper.readableDatabase
+        val filtroCuenta = if (idCuenta != null) " AND v.cuenta_id_cuenta = ?" else ""
         val query = """
             SELECT COALESCE(SUM((d.precio_unitario - COALESCE(p.precio_compra, 0)) * d.cantidad), 0)
             FROM detalle_venta d
             INNER JOIN ventas v ON d.id_venta = v.id_venta
             INNER JOIN productos p ON d.id_producto = p.id_producto
-            WHERE v.fecha_venta BETWEEN ? AND ?
+            WHERE v.fecha_venta BETWEEN ? AND ?$filtroCuenta
         """.trimIndent()
-        val cursor = db.rawQuery(query, arrayOf(desde, hasta))
+        val args = if (idCuenta != null) arrayOf(desde, hasta, idCuenta.toString()) else arrayOf(desde, hasta)
+        val cursor = db.rawQuery(query, args)
         var ganancia = 0.0
         if (cursor.moveToFirst()) ganancia = cursor.getDouble(0)
         cursor.close()
@@ -257,12 +292,11 @@ class VentasRepository(context: Context) {
     }
 
     /** Número de ventas registradas entre dos fechas (para el ticket promedio). */
-    fun cantidadVentasEntreFechas(desde: String, hasta: String): Int {
+    fun cantidadVentasEntreFechas(desde: String, hasta: String, idCuenta: Int? = null): Int {
         val db = dbHelper.readableDatabase
-        val cursor = db.rawQuery(
-            "SELECT COUNT(*) FROM ventas WHERE fecha_venta BETWEEN ? AND ?",
-            arrayOf(desde, hasta)
-        )
+        val where = "fecha_venta BETWEEN ? AND ?" + if (idCuenta != null) " AND cuenta_id_cuenta = ?" else ""
+        val args = if (idCuenta != null) arrayOf(desde, hasta, idCuenta.toString()) else arrayOf(desde, hasta)
+        val cursor = db.rawQuery("SELECT COUNT(*) FROM ventas WHERE $where", args)
         var cantidad = 0
         if (cursor.moveToFirst()) cantidad = cursor.getInt(0)
         cursor.close()
@@ -270,25 +304,107 @@ class VentasRepository(context: Context) {
         return cantidad
     }
 
+    /**
+     * Total vendido dentro de cada bucket (rango de fechas) de la lista dada.
+     * Reemplaza a la vieja `totalesPorDia`, que solo servía para agrupar por
+     * día exacto y por eso el gráfico de "Rendimiento" era siempre el mismo
+     * sin importar si se filtraba por Día/Semana/Mes/Año. Ahora cada bucket
+     * trae su propio [desde, hasta) ya resuelto por FechaUtils.bucketsParaGrafico,
+     * así sirve tanto para 7 días como para 7 meses, etc.
+     */
+    fun totalesPorBucket(buckets: List<Triple<String, String, String>>, idCuenta: Int? = null): Map<String, Double> {
+        val resultado = mutableMapOf<String, Double>()
+        buckets.forEach { (etiqueta, desde, hasta) ->
+            resultado[etiqueta] = totalEntreFechas(desde, hasta, idCuenta)
+        }
+        return resultado
+    }
+
     /** Total vendido por cada día (clave "yyyy-MM-dd") dentro de la lista de días dada. */
-    fun totalesPorDia(dias: List<String>): Map<String, Double> {
+    fun totalesPorDia(dias: List<String>, idCuenta: Int? = null): Map<String, Double> {
         if (dias.isEmpty()) return emptyMap()
         val resultado = dias.associateWith { 0.0 }.toMutableMap()
         val db = dbHelper.readableDatabase
         val placeholders = dias.joinToString(",") { "?" }
+        val filtroCuenta = if (idCuenta != null) " AND cuenta_id_cuenta = ?" else ""
         val query = """
             SELECT substr(fecha_venta, 1, 10) AS dia, COALESCE(SUM(total), 0) AS total
             FROM ventas
-            WHERE substr(fecha_venta, 1, 10) IN ($placeholders)
+            WHERE substr(fecha_venta, 1, 10) IN ($placeholders)$filtroCuenta
             GROUP BY dia
         """.trimIndent()
-        val cursor = db.rawQuery(query, dias.toTypedArray())
+        val args = if (idCuenta != null) dias.toTypedArray() + idCuenta.toString() else dias.toTypedArray()
+        val cursor = db.rawQuery(query, args)
         if (cursor.moveToFirst()) {
             do {
                 val dia = cursor.getString(0)
                 val total = cursor.getDouble(1)
                 resultado[dia] = total
             } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return resultado
+    }
+
+    /** Suma de unidades vendidas (items, no líneas) entre dos fechas. Se usa para "Artículos por venta". */
+    fun sumaCantidadEntreFechas(desde: String, hasta: String, idCuenta: Int? = null): Int {
+        val db = dbHelper.readableDatabase
+        val filtroCuenta = if (idCuenta != null) " AND v.cuenta_id_cuenta = ?" else ""
+        val query = """
+            SELECT COALESCE(SUM(d.cantidad), 0)
+            FROM detalle_venta d
+            INNER JOIN ventas v ON d.id_venta = v.id_venta
+            WHERE v.fecha_venta BETWEEN ? AND ?$filtroCuenta
+        """.trimIndent()
+        val args = if (idCuenta != null) arrayOf(desde, hasta, idCuenta.toString()) else arrayOf(desde, hasta)
+        val cursor = db.rawQuery(query, args)
+        var cantidad = 0
+        if (cursor.moveToFirst()) cantidad = cursor.getInt(0)
+        cursor.close()
+        db.close()
+        return cantidad
+    }
+
+    /**
+     * Datos ya resueltos (cliente, cajero, método de pago) de UNA venta
+     * puntual, sin importar cuándo se hizo. Se usa para poder ver/imprimir
+     * la factura de cualquier venta pasada desde el Historial de Ventas.
+     */
+    data class VentaParaFactura(
+        val idVenta: Int,
+        val fecha: String,
+        val nombreCliente: String,
+        val nombreCajero: String,
+        val metodoPago: String,
+        val total: Double
+    )
+
+    fun obtenerParaFactura(idVenta: Int): VentaParaFactura? {
+        val db = dbHelper.readableDatabase
+        val query = """
+            SELECT v.id_venta, v.fecha_venta, v.total,
+                   p.nombres || ' ' || p.apellidos AS nombre_cliente,
+                   pg.tipo_pago,
+                   pc.nombres || ' ' || pc.apellidos AS nombre_cajero
+            FROM ventas v
+            INNER JOIN persona p ON v.id_cliente = p.id_persona
+            INNER JOIN pagos pg ON v.id_pago = pg.id_pago
+            LEFT JOIN cuenta c ON v.cuenta_id_cuenta = c.id_cuenta
+            LEFT JOIN persona pc ON c.id_persona = pc.id_persona
+            WHERE v.id_venta = ?
+        """.trimIndent()
+        val cursor = db.rawQuery(query, arrayOf(idVenta.toString()))
+        var resultado: VentaParaFactura? = null
+        if (cursor.moveToFirst()) {
+            resultado = VentaParaFactura(
+                idVenta = cursor.getInt(cursor.getColumnIndexOrThrow("id_venta")),
+                fecha = cursor.getString(cursor.getColumnIndexOrThrow("fecha_venta")),
+                nombreCliente = cursor.getString(cursor.getColumnIndexOrThrow("nombre_cliente")),
+                nombreCajero = cursor.getString(cursor.getColumnIndexOrThrow("nombre_cajero")) ?: "-",
+                metodoPago = cursor.getString(cursor.getColumnIndexOrThrow("tipo_pago")),
+                total = cursor.getDouble(cursor.getColumnIndexOrThrow("total"))
+            )
         }
         cursor.close()
         db.close()

@@ -20,7 +20,6 @@ class ComprasRepository(private val context: Context) {
         val totalRecibido: Double = 0.0,
         val pedidosRecibidos: Int = 0
     )
-
     // =============================================
     // CREAR COMPRA
     // =============================================
@@ -31,8 +30,7 @@ class ComprasRepository(private val context: Context) {
         observacion: String?,
         cuentaIdCuenta: Int,
         detalles: List<DetalleCompra>
-    ): Long {
-        if (detalles.isEmpty()) return -1L
+    ): Long {        if (detalles.isEmpty()) return -1L
 
         val db = dbHelper.writableDatabase
         var idCompra = -1L
@@ -75,6 +73,42 @@ class ComprasRepository(private val context: Context) {
         return idCompra
     }
 
+    /**
+     * Igual que [crearCompra], pero además permite dejar registrado de una
+     * vez el pago con el que arranca la orden: nada (todo queda pendiente,
+     * a crédito), un anticipo parcial, o el pago al contado del total.
+     * Antes, "Nueva Compra" no preguntaba nada sobre la forma de pago con
+     * el proveedor y la orden quedaba siempre 100% pendiente sin ninguna
+     * pista de si se pensaba pagar de contado, a crédito o con anticipo.
+     *
+     * Devuelve el id de la compra creada (-1 si falla). Si se pidió
+     * registrar un pago inicial y este falla, la compra igual queda creada
+     * (como PENDIENTE, sin abonos) para no perder la orden ya cargada.
+     */
+    fun crearCompraConPagoInicial(
+        idProveedor: Int,
+        observacion: String?,
+        cuentaIdCuenta: Int,
+        detalles: List<DetalleCompra>,
+        montoPagoInicial: Double?,
+        metodoPagoInicial: String?,
+        registradoPor: String?
+    ): Long {
+        val idCompra = crearCompra(idProveedor, observacion, cuentaIdCuenta, detalles)
+        if (idCompra > 0 && montoPagoInicial != null && montoPagoInicial > 0.0 && metodoPagoInicial != null) {
+            registrarPago(
+                PagoCompra(
+                    fecha = FechaUtils.ahora(),
+                    metodoPago = metodoPagoInicial,
+                    monto = montoPagoInicial,
+                    idCompra = idCompra.toInt(),
+                    registradoPor = registradoPor
+                )
+            )
+        }
+        return idCompra
+    }
+
     // =============================================
     // CONSULTAS
     // =============================================
@@ -91,9 +125,12 @@ class ComprasRepository(private val context: Context) {
                 co.id_compra, co.codigo, co.fecha_emision, co.observacion, co.estado, co.total,
                 co.id_proveedor, co.cuenta_id_cuenta,
                 pr.razon_social, pr.rfc_nit, pr.condicion_pago,
+                per.nombres || ' ' || per.apellidos AS nombre_registrador,
                 COALESCE((SELECT SUM(pc.monto) FROM pagos_compra pc WHERE pc.id_compra = co.id_compra), 0) AS total_pagado
             FROM compras co
             INNER JOIN proveedores pr ON co.id_proveedor = pr.id_proveedor
+            LEFT JOIN cuenta c ON co.cuenta_id_cuenta = c.id_cuenta
+            LEFT JOIN persona per ON c.id_persona = per.id_persona
             $where
             ORDER BY co.id_compra DESC
         """.trimIndent()
@@ -115,9 +152,12 @@ class ComprasRepository(private val context: Context) {
                 co.id_compra, co.codigo, co.fecha_emision, co.observacion, co.estado, co.total,
                 co.id_proveedor, co.cuenta_id_cuenta,
                 pr.razon_social, pr.rfc_nit, pr.condicion_pago,
+                per.nombres || ' ' || per.apellidos AS nombre_registrador,
                 COALESCE((SELECT SUM(pc.monto) FROM pagos_compra pc WHERE pc.id_compra = co.id_compra), 0) AS total_pagado
             FROM compras co
             INNER JOIN proveedores pr ON co.id_proveedor = pr.id_proveedor
+            LEFT JOIN cuenta c ON co.cuenta_id_cuenta = c.id_cuenta
+            LEFT JOIN persona per ON c.id_persona = per.id_persona
             WHERE co.id_compra = ?
         """.trimIndent()
         val cursor = db.rawQuery(query, arrayOf(idCompra.toString()))
@@ -144,7 +184,8 @@ class ComprasRepository(private val context: Context) {
             razonSocialProveedor = c.getString(c.getColumnIndexOrThrow("razon_social")),
             rfcNitProveedor = c.getString(c.getColumnIndexOrThrow("rfc_nit")),
             condicionPagoProveedor = c.getString(c.getColumnIndexOrThrow("condicion_pago")),
-            totalPagado = c.getDouble(c.getColumnIndexOrThrow("total_pagado"))
+            totalPagado = c.getDouble(c.getColumnIndexOrThrow("total_pagado")),
+            nombreRegistrador = c.getString(c.getColumnIndexOrThrow("nombre_registrador"))
         )
     }
 

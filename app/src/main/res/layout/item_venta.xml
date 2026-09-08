@@ -5,7 +5,10 @@
     android:layout_marginBottom="16dp"
     android:background="#0F0F0F"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -84,4 +87,16 @@
             android:textSize="18sp"
             android:textStyle="bold" />
     </LinearLayout>
+
+    <!-- NUEVO: pista de que la tarjeta es tocable para ver/imprimir la
+         factura de esta venta, sin importar la fecha en la que se hizo. -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="end"
+        android:text="🧾 Toca para ver factura"
+        android:textColor="#ED2F09"
+        android:textSize="11sp"
+        android:textStyle="bold" />
 </LinearLayout>

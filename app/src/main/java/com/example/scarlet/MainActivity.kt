@@ -1,5 +1,7 @@
 package com.example.scarlet
 
+import com.example.scarlet.util.NavegacionOrigen
+
 import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
@@ -67,72 +69,75 @@ class MainActivity : AppCompatActivity() {
 
         val imgMenu = findViewById<ImageView>(R.id.imgMenu)
         val sideMenu = findViewById<LinearLayout>(R.id.sideMenu)
+        val menuOverlay = findViewById<View>(R.id.viewMenuOverlay)
         val menuProveedores = findViewById<TextView>(R.id.menuProveedores)
         val menuMiCuenta = findViewById<TextView>(R.id.menuMiCuenta)
-        val fabAdd = findViewById<FloatingActionButton>(R.id.fabAdd)
 
-        fabAdd.setOnClickListener {
-            startActivity(
-                Intent(this, QR::class.java)
-            )
+        fun abrirMenu() {
+            menuOverlay.visibility = View.VISIBLE
+            sideMenu.visibility = View.VISIBLE
+            sideMenu.translationX = -sideMenu.width.toFloat()
+            sideMenu.animate().translationX(0f).setDuration(250).start()
+            resaltarItemMenuActual()
+        }
+
+        fun cerrarMenu() {
+            sideMenu.animate()
+                .translationX(-sideMenu.width.toFloat())
+                .setDuration(200)
+                .withEndAction {
+                    sideMenu.visibility = View.GONE
+                    menuOverlay.visibility = View.GONE
+                }
+                .start()
         }
 
         imgMenu.setOnClickListener {
-
-            if (sideMenu.visibility == View.GONE) {
-
-                sideMenu.visibility = View.VISIBLE
-
-                sideMenu.translationX = -sideMenu.width.toFloat()
-
-                sideMenu.animate()
-                    .translationX(0f)
-                    .setDuration(250)
-                    .start()
-
-            } else {
-
-                sideMenu.animate()
-                    .translationX(-sideMenu.width.toFloat())
-                    .setDuration(250)
-                    .withEndAction {
-                        sideMenu.visibility = View.GONE
-                    }
-                    .start()
-            }
+            if (sideMenu.visibility == View.GONE) abrirMenu() else cerrarMenu()
         }
+
+        // Cualquier toque fuera del menú (en el resto de la pantalla) lo cierra
+        menuOverlay.setOnClickListener { cerrarMenu() }
 
 
 
         // para el mi cuenta
         menuMiCuenta.setOnClickListener {
-            val intent = Intent(this, MiCuenta::class.java)
-            startActivity(intent)
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, MiCuenta::class.java)
         }
         findViewById<TextView>(R.id.menuCaja).setOnClickListener {
-            startActivity(Intent(this, CajaActivity::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, CajaActivity::class.java)
         }
         // para proveedores (antes no tenía listener: era inalcanzable)
         menuProveedores.setOnClickListener {
-            startActivity(Intent(this, Proveedores::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, Proveedores::class.java)
         }
         // para categorías
         findViewById<TextView>(R.id.menuCategorias).setOnClickListener {
-            startActivity(Intent(this, CategoriasActivity::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, CategoriasActivity::class.java)
         }
         // para inventario (existía en el layout pero sin listener: era inalcanzable)
         findViewById<TextView>(R.id.menuInventario).setOnClickListener {
-            startActivity(Intent(this, Inventario::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, Inventario::class.java)
         }
         // para reabastecimiento / compras (idem: sin listener)
         findViewById<TextView>(R.id.menuReabastecimiento).setOnClickListener {
-            startActivity(Intent(this, Reabastecimiento::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, Reabastecimiento::class.java)
         }
         findViewById<TextView>(R.id.menuCajeros).setOnClickListener {
-            startActivity(Intent(this, GestionCajeros::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, GestionCajeros::class.java)
         }
         // cerra sesion
         findViewById<TextView>(R.id.menuSalir).setOnClickListener {
+
+            cerrarMenu()
 
             AlertDialog.Builder(this)
                 .setTitle("Cerrar sesión")
@@ -164,8 +169,9 @@ class MainActivity : AppCompatActivity() {
             findViewById(R.id.bottomNavigation)
 
         // Restringe accesos de gestión (Categorías, Proveedores, Inventario,
-        // Reabastecimiento, Reportes) a solo el rol Administrador. El Cajero
-        // solo debe ver Inicio, Productos (catálogo/venta), Ventas y Mi cuenta.
+        // Reabastecimiento) a solo el rol Administrador. El Cajero también
+        // ve Reportes (con sus propias estadísticas), además de Inicio,
+        // Productos (catálogo/venta), Ventas y Mi cuenta.
         aplicarRestriccionesPorRol()
 
         ViewCompat.setOnApplyWindowInsetsListener(
@@ -302,18 +308,43 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
+    /*override fun onResume() {
         super.onResume()
         CartManager.agregarListener(cartListener)
         actualizarBadgeCarrito()
         cargarEstadisticas()
+    }*/
+    override fun onResume() {
+        super.onResume()
+        cargarEstadisticas()
+        setupNotifications()   // <-- recalcula la campanita cada vez que vuelves a Home
     }
 
     override fun onPause() {
         super.onPause()
         CartManager.quitarListener(cartListener)
     }
+    private fun resaltarItemMenuActual() {
+        // Mapea cada item del menú con la Activity a la que navega.
+        // null = no navega a otra Activity (ej. "Salir"), nunca se resalta.
+        val items = listOf(
+            findViewById<TextView>(R.id.menuMiCuenta) to MiCuenta::class.java,
+            findViewById<TextView>(R.id.menuCaja) to CajaActivity::class.java,
+            findViewById<TextView>(R.id.menuCategorias) to CategoriasActivity::class.java,
+            findViewById<TextView>(R.id.menuProveedores) to Proveedores::class.java,
+            findViewById<TextView>(R.id.menuInventario) to Inventario::class.java,
+            findViewById<TextView>(R.id.menuReabastecimiento) to Reabastecimiento::class.java,
+            findViewById<TextView>(R.id.menuCajeros) to GestionCajeros::class.java
+        )
 
+        items.forEach { (item, clase) ->
+            val esActual = clase == this::class.java
+            item.setBackgroundResource(
+                if (esActual) R.drawable.bg_menu_item_selected else android.R.color.transparent
+            )
+            item.setTextColor(if (esActual) 0xFFFF3B16.toInt() else 0xFFCCCCCC.toInt())
+        }
+    }
     private fun actualizarBadgeCarrito() {
         val total = CartManager.totalItems()
         if (total > 0) {
@@ -416,13 +447,17 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, Productos::class.java))
         }
 
-        val imgCarrito = findViewById<ImageView>(R.id.imgCarrito)
+        /*val imgCarrito = findViewById<ImageView>(R.id.imgCarrito)
         imgCarrito.setOnClickListener {
             if (com.example.scarlet.cart.CartManager.estaVacio()) {
                 Toast.makeText(this, "Tu carrito está vacío. Agrega productos primero.", Toast.LENGTH_SHORT).show()
             } else {
                 startActivity(Intent(this, Shopping::class.java))
             }
+        }*/
+        val imgCarrito = findViewById<ImageView>(R.id.imgCarrito)
+        imgCarrito.setOnClickListener {
+            com.example.scarlet.util.CarritoUtils.manejarClick(this, imgCarrito)
         }
 
         val imgPerfil = findViewById<ImageView>(R.id.imgPerfil)
@@ -465,46 +500,6 @@ class MainActivity : AppCompatActivity() {
     // NOTIFICACIONES
     // ============================================
 
-    /*private fun setupNotifications() {
-
-        val notificationIcon =
-            findViewById<ImageView>(R.id.imgNorificacion)
-
-        val badge =
-            findViewById<TextView>(R.id.txtNotificationBadge)
-
-        val notificationCount = 3
-
-        if (notificationCount > 0) {
-
-            badge.text =
-                if (notificationCount > 99) {
-                    "99+"
-                } else {
-                    notificationCount.toString()
-                }
-
-            badge.visibility =
-                android.view.View.VISIBLE
-
-        } else {
-
-            badge.visibility =
-                android.view.View.GONE
-        }
-
-        notificationIcon.setOnClickListener {
-
-            Toast.makeText(
-                this,
-                "Tienes $notificationCount nuevas notificaciones",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            badge.visibility =
-                android.view.View.GONE
-        }
-    }*/
     private fun setupNotifications() {
         com.example.scarlet.util.AlertasUtils.configurar(this)
     }
@@ -514,10 +509,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Oculta del menú lateral y de la barra inferior las secciones de
-     * gestión (Categorías, Proveedores, Inventario, Reabastecimiento,
-     * Reportes) cuando la cuenta que inició sesión no es Administrador.
-     * El Cajero conserva Inicio, Productos, Ventas y Mi cuenta.
+     * Oculta del menú lateral las secciones de gestión exclusivas de
+     * Administrador (Categorías, Proveedores, Inventario, Reabastecimiento).
+     * El Cajero conserva Inicio, Productos, Ventas, Mi cuenta — y también
+     * Reportes.
+     *
+     * ANTES esta función también ocultaba la pestaña "Reportes" del menú
+     * inferior para cualquier cuenta que no fuera Administrador, así que un
+     * Cajero no tenía ninguna forma de llegar a esa pantalla. Reportes.kt ya
+     * está preparado para mostrarle a cada cajero SOLO sus propias
+     * estadísticas/ventas (y reservar la vista general — todas las cuentas —
+     * únicamente para el Administrador), así que ya no hace falta esconderle
+     * la pestaña.
      */
     private fun aplicarRestriccionesPorRol() {
         if (Session.esAdmin) return
@@ -527,7 +530,5 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.menuProveedores).visibility = android.view.View.GONE
         findViewById<TextView>(R.id.menuInventario).visibility = android.view.View.GONE
         findViewById<TextView>(R.id.menuReabastecimiento).visibility = android.view.View.GONE
-
-        bottomNavigation.menu.findItem(R.id.nav_reportes)?.isVisible = false
     }
 }

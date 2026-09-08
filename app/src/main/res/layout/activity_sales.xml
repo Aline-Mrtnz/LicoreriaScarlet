@@ -271,6 +271,23 @@
         app:menu="@menu/bottom_menu" />
 
     <!-- ========================= -->
+    <!-- OVERLAY DEL MENÚ LATERAL (cubre toda la pantalla para poder cerrar
+         el menú tocando fuera de él; antes estaba metido DENTRO del
+         LinearLayout del menú con 0dp de ancho/alto, así que nunca cubría
+         nada y tocar fuera no cerraba el menú) -->
+    <!-- ========================= -->
+    <View
+        android:id="@+id/viewMenuOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- ========================= -->
     <!-- MENÚ LATERAL -->
     <!-- ========================= -->
 
@@ -286,7 +303,6 @@
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/headerLayout"
         app:layout_constraintStart_toStartOf="parent">
-
         <TextView
             android:id="@+id/menuMiCuenta"
             android:layout_width="match_parent"
@@ -294,6 +310,16 @@
             android:gravity="center_vertical"
             android:paddingStart="20dp"
             android:text="Mi cuenta"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuCaja"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Caja"
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
 
@@ -325,6 +351,26 @@
             android:gravity="center_vertical"
             android:paddingStart="20dp"
             android:text="Inventario"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuReabastecimiento"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Reabastecimiento"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuCajeros"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Cuentas de Cajero"
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
 

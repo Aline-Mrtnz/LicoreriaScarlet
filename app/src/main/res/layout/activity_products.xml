@@ -27,16 +27,22 @@
             android:id="@+id/imgMenu"
             android:layout_width="18dp"
             android:layout_height="18dp"
-            android:layout_marginEnd="12dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginEnd="4dp"
             android:scaleType="centerCrop"
             android:src="@drawable/menu" />
 
+        <!-- INFORMACION: mismo diseño y datos reales que el header de
+             Inicio (SCARLET / BIENVENIDO / nombre / rol), en vez del
+             subtítulo fijo "PRODUCTOS" que había antes. Se llenan en
+             Productos.kt -> cargarInformacionUsuario(). -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="178dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center_vertical"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingStart="6dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -50,11 +56,43 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:text="PRODUCTOS"
+                android:text="BIENVENIDO"
                 android:textColor="#777777"
                 android:textSize="7sp" />
 
+            <TextView
+                android:id="@+id/txtNombre"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Alex Santiago"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtRol"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="●  Administrador Senior"
+                android:textColor="#FF2A00"
+                android:textSize="7sp" />
+
         </LinearLayout>
+
+        <!-- AVATAR: antes no existía en esta pantalla, y Productos.kt SÍ
+             intentaba engancharle un click (setupCarritoYPerfil ->
+             findViewById<ImageView>(R.id.imgPerfil)), lo que devolvía null
+             y hacía crashear la app apenas se abría "Productos"
+             (NullPointerException al llamar setOnClickListener sobre null). -->
+        <ImageView
+            android:id="@+id/imgPerfil"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/circle_background"
+            android:contentDescription="Perfil"
+            android:scaleType="centerCrop"
+            android:src="@drawable/scarlet" />
 
         <!-- CARRITO -->
         <FrameLayout
@@ -263,6 +301,22 @@
         app:menu="@menu/bottom_menu" />
 
     <!-- ========================= -->
+    <!-- OVERLAY DEL MENÚ LATERAL (cubre toda la pantalla; antes estaba
+         metido dentro del LinearLayout del menú con 0dp de ancho/alto,
+         así que nunca cubría nada y tocar fuera no cerraba el menú) -->
+    <!-- ========================= -->
+    <View
+        android:id="@+id/viewMenuOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- ========================= -->
     <!-- MENÚ LATERAL -->
     <!-- ========================= -->
 
@@ -278,7 +332,6 @@
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/headerLayout"
         app:layout_constraintStart_toStartOf="parent">
-
         <TextView
             android:id="@+id/menuMiCuenta"
             android:layout_width="match_parent"
@@ -286,6 +339,16 @@
             android:gravity="center_vertical"
             android:paddingStart="20dp"
             android:text="Mi cuenta"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuCaja"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Caja"
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
 
@@ -317,6 +380,26 @@
             android:gravity="center_vertical"
             android:paddingStart="20dp"
             android:text="Inventario"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuReabastecimiento"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Reabastecimiento"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuCajeros"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Cuentas de Cajero"
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
 

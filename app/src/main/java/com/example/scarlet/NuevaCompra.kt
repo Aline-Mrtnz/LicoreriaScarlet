@@ -31,6 +31,21 @@ class NuevaCompra : AppCompatActivity() {
     private lateinit var llProductos: LinearLayout
     private lateinit var txtTotalCompra: TextView
 
+    // --- Forma de pago al proveedor (nuevo) ---
+    private lateinit var txtCondicionProveedor: TextView
+    private lateinit var chipPagoPendiente: TextView
+    private lateinit var chipPagoContado: TextView
+    private lateinit var chipPagoAnticipo: TextView
+    private lateinit var txtNotaPagoPendiente: TextView
+    private lateinit var layoutDatosPago: LinearLayout
+    private lateinit var spinnerMetodoPagoInicial: Spinner
+    private lateinit var layoutMontoAnticipo: LinearLayout
+    private lateinit var edtMontoAnticipo: EditText
+    private lateinit var txtResumenPagoInicial: TextView
+
+    /** "PENDIENTE" (todo a crédito), "CONTADO" (paga el total ahora) o "ANTICIPO" (paga una parte ahora). */
+    private var tipoPagoSeleccionado = "PENDIENTE"
+
     private var proveedores: List<Proveedor> = emptyList()
     private var productos: List<Producto> = emptyList()
     private val filas = mutableListOf<FilaProducto>()
@@ -66,9 +81,23 @@ class NuevaCompra : AppCompatActivity() {
         llProductos = findViewById(R.id.llProductosCompra)
         txtTotalCompra = findViewById(R.id.txtTotalCompra)
 
+        txtCondicionProveedor = findViewById(R.id.txtCondicionProveedor)
+        chipPagoPendiente = findViewById(R.id.chipPagoPendiente)
+        chipPagoContado = findViewById(R.id.chipPagoContado)
+        chipPagoAnticipo = findViewById(R.id.chipPagoAnticipo)
+        txtNotaPagoPendiente = findViewById(R.id.txtNotaPagoPendiente)
+        layoutDatosPago = findViewById(R.id.layoutDatosPago)
+        spinnerMetodoPagoInicial = findViewById(R.id.spinnerMetodoPagoInicial)
+        layoutMontoAnticipo = findViewById(R.id.layoutMontoAnticipo)
+        edtMontoAnticipo = findViewById(R.id.edtMontoAnticipo)
+        txtResumenPagoInicial = findViewById(R.id.txtResumenPagoInicial)
+
+        spinnerMetodoPagoInicial.adapter = crearAdapterSpinner(listOf("Efectivo", "Transferencia", "QR"))
+
         productos = productosRepository.obtenerTodosLosProductos()
         proveedores = proveedoresRepository.listar(filtroEstado = ProveedoresRepository.ESTADO_ACTIVO)
         configurarSpinnerProveedor()
+        configurarFormaDePago()
 
         findViewById<TextView>(R.id.btnAgregarProducto).setOnClickListener { agregarFila() }
         findViewById<TextView>(R.id.btnRegistrarCompra).setOnClickListener { registrarCompra() }
@@ -85,6 +114,79 @@ class NuevaCompra : AppCompatActivity() {
         }
         val nombres = listOf("Seleccionar proveedor...") + proveedores.map { it.razonSocial }
         spinnerProveedor.adapter = crearAdapterSpinner(nombres)
+
+        spinnerProveedor.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p: android.widget.AdapterView<*>?, v: View?, pos: Int, id: Long) {
+                if (pos > 0) {
+                    val proveedor = proveedores[pos - 1]
+                    val condicion = proveedor.condicionPago.takeIf { it.isNotBlank() } ?: "No especificada"
+                    txtCondicionProveedor.text = "Este proveedor suele trabajar con: $condicion"
+                } else {
+                    txtCondicionProveedor.text = "Selecciona un proveedor para ver su condición de pago habitual."
+                }
+            }
+            override fun onNothingSelected(p: android.widget.AdapterView<*>?) {}
+        }
+    }
+
+    /**
+     * Antes esta pantalla no preguntaba NADA sobre la forma de pago: la
+     * compra siempre quedaba 100% pendiente, sin decir si correspondía
+     * pagar al contado, a crédito/cuotas, o dejar un anticipo. Ahora hay 3
+     * chips que cambian qué se pide y qué se guarda:
+     *
+     *  - "Todo a crédito": no se pide nada más; la orden queda 100% pendiente
+     *    (se podrán registrar abonos/cuotas después, desde el detalle).
+     *  - "Al contado": se pide método de pago y se paga el TOTAL de una vez
+     *    al momento de registrar la compra (saldo pendiente = 0).
+     *  - "Con anticipo": se pide método de pago + un monto de adelanto
+     *    (menor al total), mostrando en vivo cuánto quedará pendiente.
+     */
+    private fun configurarFormaDePago() {
+        chipPagoPendiente.setOnClickListener { seleccionarTipoPago("PENDIENTE") }
+        chipPagoContado.setOnClickListener { seleccionarTipoPago("CONTADO") }
+        chipPagoAnticipo.setOnClickListener { seleccionarTipoPago("ANTICIPO") }
+
+        edtMontoAnticipo.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) { actualizarResumenPago() }
+        })
+
+        seleccionarTipoPago("PENDIENTE")
+    }
+
+    private fun seleccionarTipoPago(tipo: String) {
+        tipoPagoSeleccionado = tipo
+
+        chipPagoPendiente.setBackgroundResource(if (tipo == "PENDIENTE") R.drawable.bg_filter_selected else R.drawable.bg_filter_unselected)
+        chipPagoContado.setBackgroundResource(if (tipo == "CONTADO") R.drawable.bg_filter_selected else R.drawable.bg_filter_unselected)
+        chipPagoAnticipo.setBackgroundResource(if (tipo == "ANTICIPO") R.drawable.bg_filter_selected else R.drawable.bg_filter_unselected)
+
+        txtNotaPagoPendiente.visibility = if (tipo == "PENDIENTE") View.VISIBLE else View.GONE
+        layoutDatosPago.visibility = if (tipo == "PENDIENTE") View.GONE else View.VISIBLE
+        layoutMontoAnticipo.visibility = if (tipo == "ANTICIPO") View.VISIBLE else View.GONE
+
+        actualizarResumenPago()
+    }
+
+    private fun totalActual(): Double = filas.sumOf { fila ->
+        val cantidad = fila.edtCantidad.text.toString().toIntOrNull() ?: 0
+        val precio = fila.edtPrecio.text.toString().toDoubleOrNull() ?: 0.0
+        cantidad * precio
+    }
+
+    /** Refresca "Vas a pagar Bs X ahora. Saldo pendiente: Bs Y." según el tipo de pago elegido y el total actual. */
+    private fun actualizarResumenPago() {
+        val total = totalActual()
+        val montoAPagar = when (tipoPagoSeleccionado) {
+            "CONTADO" -> total
+            "ANTICIPO" -> edtMontoAnticipo.text.toString().toDoubleOrNull() ?: 0.0
+            else -> 0.0
+        }
+        val saldo = (total - montoAPagar).coerceAtLeast(0.0)
+        txtResumenPagoInicial.text =
+            "Vas a pagar ${ComprasAdapter.formatearBs(montoAPagar)} ahora. Saldo pendiente: ${ComprasAdapter.formatearBs(saldo)}."
     }
 
     private fun agregarFila(idProductoSugerido: Int = -1) {
@@ -159,12 +261,9 @@ class NuevaCompra : AppCompatActivity() {
     }
 
     private fun recalcularTotal() {
-        val total = filas.sumOf { fila ->
-            val cantidad = fila.edtCantidad.text.toString().toIntOrNull() ?: 0
-            val precio = fila.edtPrecio.text.toString().toDoubleOrNull() ?: 0.0
-            cantidad * precio
-        }
+        val total = totalActual()
         txtTotalCompra.text = ComprasAdapter.formatearBs(total)
+        actualizarResumenPago()
     }
 
     private fun registrarCompra() {
@@ -202,18 +301,54 @@ class NuevaCompra : AppCompatActivity() {
             return
         }
 
+        val total = detalles.sumOf { it.subtotal }
+
+        // Validar la forma de pago elegida (nuevo). Antes no se pedía nada
+        // aquí y la orden quedaba siempre 100% pendiente sin más detalle.
+        var montoPagoInicial: Double? = null
+        var metodoPagoInicial: String? = null
+        when (tipoPagoSeleccionado) {
+            "CONTADO" -> {
+                montoPagoInicial = total
+                metodoPagoInicial = spinnerMetodoPagoInicial.selectedItem.toString()
+            }
+            "ANTICIPO" -> {
+                val monto = edtMontoAnticipo.text.toString().toDoubleOrNull()
+                if (monto == null || monto <= 0) {
+                    Toast.makeText(this, "Ingresa el monto del anticipo", Toast.LENGTH_SHORT).show()
+                    return
+                }
+                if (monto > total + 0.009) {
+                    Toast.makeText(this, "El anticipo no puede ser mayor al total de la compra", Toast.LENGTH_SHORT).show()
+                    return
+                }
+                montoPagoInicial = monto
+                metodoPagoInicial = spinnerMetodoPagoInicial.selectedItem.toString()
+            }
+            // "PENDIENTE": no se registra ningún pago, la orden queda a crédito.
+        }
+
         val proveedor = proveedores[spinnerProveedor.selectedItemPosition - 1]
         val cuentaId = if (Session.estaLogueado) Session.idCuenta else 1
+        val registradoPor = if (Session.estaLogueado) Session.nombreCompleto else null
 
-        val id = comprasRepository.crearCompra(
+        val id = comprasRepository.crearCompraConPagoInicial(
             idProveedor = proveedor.idProveedor,
             observacion = edtObservacion.text.toString().trim().ifBlank { null },
             cuentaIdCuenta = cuentaId,
-            detalles = detalles
+            detalles = detalles,
+            montoPagoInicial = montoPagoInicial,
+            metodoPagoInicial = metodoPagoInicial,
+            registradoPor = registradoPor
         )
 
         if (id > 0) {
-            Toast.makeText(this, "Compra registrada como pendiente", Toast.LENGTH_SHORT).show()
+            val mensaje = when (tipoPagoSeleccionado) {
+                "CONTADO" -> "Compra registrada y pagada al contado"
+                "ANTICIPO" -> "Compra registrada con anticipo de ${ComprasAdapter.formatearBs(montoPagoInicial ?: 0.0)}"
+                else -> "Compra registrada como pendiente (a crédito)"
+            }
+            Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show()
             finish()
         } else {
             Toast.makeText(this, "No se pudo registrar la compra", Toast.LENGTH_SHORT).show()

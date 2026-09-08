@@ -1,5 +1,7 @@
 package com.example.scarlet
 
+import com.example.scarlet.util.NavegacionOrigen
+
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -64,61 +66,86 @@ class Productos : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_products)
+
         //
         val imgMenu = findViewById<ImageView>(R.id.imgMenu)
         val sideMenu = findViewById<LinearLayout>(R.id.sideMenu)
+        val menuOverlay = findViewById<View>(R.id.viewMenuOverlay)
         val menuProveedores = findViewById<TextView>(R.id.menuProveedores)
         val menuMiCuenta = findViewById<TextView>(R.id.menuMiCuenta)
 
-        imgMenu.setOnClickListener {
-
-            if (sideMenu.visibility == View.GONE) {
-
-                sideMenu.visibility = View.VISIBLE
-
-                sideMenu.translationX = -sideMenu.width.toFloat()
-
-                sideMenu.animate()
-                    .translationX(0f)
-                    .setDuration(250)
-                    .start()
-
-            } else {
-
-                sideMenu.animate()
-                    .translationX(-sideMenu.width.toFloat())
-                    .setDuration(250)
-                    .withEndAction {
-                        sideMenu.visibility = View.GONE
-                    }
-                    .start()
-            }
+        fun abrirMenu() {
+            menuOverlay.visibility = View.VISIBLE
+            sideMenu.visibility = View.VISIBLE
+            sideMenu.translationX = -sideMenu.width.toFloat()
+            sideMenu.animate().translationX(0f).setDuration(250).start()
+            resaltarItemMenuActual()
         }
+
+        fun cerrarMenu() {
+            sideMenu.animate()
+                .translationX(-sideMenu.width.toFloat())
+                .setDuration(200)
+                .withEndAction {
+                    sideMenu.visibility = View.GONE
+                    menuOverlay.visibility = View.GONE
+                }
+                .start()
+        }
+
+        imgMenu.setOnClickListener {
+            if (sideMenu.visibility == View.GONE) abrirMenu() else cerrarMenu()
+        }
+
+        // Cualquier toque fuera del menú (en el resto de la pantalla) lo cierra
+        menuOverlay.setOnClickListener { cerrarMenu() }
         // para el mi cuenta
         menuMiCuenta.setOnClickListener {
-            val intent = Intent(this, MiCuenta::class.java)
-            startActivity(intent)
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, MiCuenta::class.java)
+        }
+        // para caja
+        findViewById<TextView>(R.id.menuCaja).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, CajaActivity::class.java)
         }
         // para proveedores (antes no tenía listener: era inalcanzable)
         menuProveedores.setOnClickListener {
-            startActivity(Intent(this, Proveedores::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, Proveedores::class.java)
         }
         // para categorías
         findViewById<TextView>(R.id.menuCategorias).setOnClickListener {
-            startActivity(Intent(this, CategoriasActivity::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, CategoriasActivity::class.java)
         }
         // para inventario (existía en el layout pero sin listener: era inalcanzable)
         findViewById<TextView>(R.id.menuInventario).setOnClickListener {
-            startActivity(Intent(this, Inventario::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, Inventario::class.java)
+        }
+        // para reabastecimiento / compras
+        findViewById<TextView>(R.id.menuReabastecimiento).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, Reabastecimiento::class.java)
+        }
+        // para cuentas de cajero
+        findViewById<TextView>(R.id.menuCajeros).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, GestionCajeros::class.java)
         }
         // Restringe accesos de gestión a solo el rol Administrador.
         if (!Session.esAdmin) {
             findViewById<TextView>(R.id.menuCategorias).visibility = View.GONE
             menuProveedores.visibility = View.GONE
             findViewById<TextView>(R.id.menuInventario).visibility = View.GONE
+            findViewById<TextView>(R.id.menuReabastecimiento).visibility = View.GONE
+            findViewById<TextView>(R.id.menuCajeros).visibility = View.GONE
         }
         // cerra sesion
         findViewById<TextView>(R.id.menuSalir).setOnClickListener {
+
+            cerrarMenu()
 
             AlertDialog.Builder(this)
                 .setTitle("Cerrar sesión")
@@ -225,6 +252,7 @@ class Productos : AppCompatActivity() {
         configurarBusqueda()
         configurarListeners()
         setupNotifications()
+        setupCarritoYPerfil()
 
         // Si venimos desde una categoría de la pantalla de Inicio, la preseleccionamos
         val categoriaSolicitada = intent.getStringExtra(EXTRA_CATEGORIA)
@@ -237,6 +265,51 @@ class Productos : AppCompatActivity() {
         }
 
         cargarProductos()
+        cargarInformacionUsuario()
+    }
+    private fun resaltarItemMenuActual() {
+        // Mapea cada item del menú con la Activity a la que navega.
+        // null = no navega a otra Activity (ej. "Salir"), nunca se resalta.
+        val items = listOf(
+            findViewById<TextView>(R.id.menuMiCuenta) to MiCuenta::class.java,
+            findViewById<TextView>(R.id.menuCaja) to CajaActivity::class.java,
+            findViewById<TextView>(R.id.menuCategorias) to CategoriasActivity::class.java,
+            findViewById<TextView>(R.id.menuProveedores) to Proveedores::class.java,
+            findViewById<TextView>(R.id.menuInventario) to Inventario::class.java,
+            findViewById<TextView>(R.id.menuReabastecimiento) to Reabastecimiento::class.java,
+            findViewById<TextView>(R.id.menuCajeros) to GestionCajeros::class.java
+        )
+
+        items.forEach { (item, clase) ->
+            val esActual = clase == this::class.java
+            item.setBackgroundResource(
+                if (esActual) R.drawable.bg_menu_item_selected else android.R.color.transparent
+            )
+            item.setTextColor(if (esActual) 0xFFFF3B16.toInt() else 0xFFCCCCCC.toInt())
+        }
+    }
+    /**
+     * Llena el bloque "BIENVENIDO / nombre / rol" del header con los datos
+     * reales de la sesión — igual que hace MainActivity (Inicio) con su
+     * propio header. Antes esta pantalla mostraba un subtítulo fijo
+     * "PRODUCTOS" sin nombre ni rol.
+     */
+    private fun cargarInformacionUsuario() {
+        val txtNombre = findViewById<TextView>(R.id.txtNombre)
+        val txtRol = findViewById<TextView>(R.id.txtRol)
+        try {
+            if (Session.estaLogueado) {
+                txtNombre.text = Session.nombreCompleto
+                txtRol.text = "●  ${Session.rol}"
+            } else {
+                txtNombre.text = "Admin Sistema"
+                txtRol.text = "●  Administrador"
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            txtNombre.text = "Admin Sistema"
+            txtRol.text = "●  Administrador"
+        }
     }
 
     override fun onResume() {
@@ -286,12 +359,22 @@ class Productos : AppCompatActivity() {
             producto.descripcion?.takeIf { it.isNotBlank() } ?: "Este producto no tiene una descripción registrada."
         vista.findViewById<TextView>(R.id.tvDialogPrecio).text = decimalFormat.format(producto.precioVenta)
 
+        val btnAgregar = vista.findViewById<TextView>(R.id.btnDialogAgregarCarrito)
+        val tvAgotado = vista.findViewById<TextView>(R.id.tvDialogAgotado)
+        val sinStock = producto.stock <= 0
+        tvAgotado.visibility = if (sinStock) View.VISIBLE else View.GONE
+        btnAgregar.isEnabled = !sinStock
+        btnAgregar.alpha = if (sinStock) 0.4f else 1f
+        btnAgregar.text = if (sinStock) "Agotado" else "Agregar al Carrito"
+
         vista.findViewById<ImageView>(R.id.btnCerrarDialog).setOnClickListener {
             dialog.dismiss()
         }
-        vista.findViewById<TextView>(R.id.btnDialogAgregarCarrito).setOnClickListener {
-            agregarAlCarrito(producto)
-            dialog.dismiss()
+        btnAgregar.setOnClickListener {
+            if (!sinStock) {
+                agregarAlCarrito(producto)
+                dialog.dismiss()
+            }
         }
 
         dialog.show()
@@ -454,44 +537,32 @@ class Productos : AppCompatActivity() {
             }
         }
     }
+    private fun setupCarritoYPerfil() {
+        val imgCarritoReportes = findViewById<ImageView>(R.id.imgCarrito)
+        imgCarritoReportes.setOnClickListener {
+            com.example.scarlet.util.CarritoUtils.manejarClick(this, imgCarritoReportes)
+        }
 
-    /*private fun setupNotifications() {
-
-        val notificationIcon =
-            findViewById<ImageView>(R.id.imgNorificacion)
-
-        val badge =
-            findViewById<TextView>(R.id.txtNotificationBadge)
-
-        val notificationCount = 3
-
-        if (notificationCount > 0) {
-
-            badge.text =
-                if (notificationCount > 99) {
-                    "99+"
-                } else {
-                    notificationCount.toString()
+        findViewById<ImageView>(R.id.imgPerfil).setOnClickListener {
+            val nombre = if (Session.estaLogueado) Session.nombreCompleto else "Admin Sistema"
+            val rol = if (Session.estaLogueado) Session.rol else "Administrador"
+            AlertDialog.Builder(this)
+                .setTitle(nombre)
+                .setMessage("Rol: $rol")
+                .setPositiveButton("Cerrar sesión") { _, _ ->
+                    Session.cerrar()
+                    CartManager.limpiar()
+                    val intent = Intent(this, Login::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    finish()
                 }
-
-            badge.visibility = android.view.View.VISIBLE
-
-        } else {
-
-            badge.visibility = android.view.View.GONE
+                .setNegativeButton("Cancelar", null)
+                .show()
         }
 
-        notificationIcon.setOnClickListener {
-
-            Toast.makeText(
-                this,
-                "Tienes $notificationCount nuevas notificaciones",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            badge.visibility = android.view.View.GONE
-        }
-    }*/
+        actualizarBadgeCarrito()
+    }
     private fun setupNotifications() {
         com.example.scarlet.util.AlertasUtils.configurar(this)
     }

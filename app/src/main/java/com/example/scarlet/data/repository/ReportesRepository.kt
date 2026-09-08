@@ -76,10 +76,14 @@ class ReportesRepository(private val context: Context) {
     /**
      * Productos más vendidos (por cantidad) entre dos fechas, listos para
      * la sección "Top Productos" de la pantalla de Reportes.
+     *
+     * [idCuenta] filtra solo los productos vendidos por esa cuenta (cajero
+     * o admin). Null trae el top de TODAS las cuentas (vista general).
      */
-    fun topProductos(desde: String, hasta: String, limite: Int = 5): List<com.example.scarlet.data.model.TopProducto> {
+    fun topProductos(desde: String, hasta: String, limite: Int = 5, idCuenta: Int? = null): List<com.example.scarlet.data.model.TopProducto> {
         val lista = mutableListOf<com.example.scarlet.data.model.TopProducto>()
         val db = dbHelper.readableDatabase
+        val filtroCuenta = if (idCuenta != null) " AND v.cuenta_id_cuenta = ?" else ""
         val query = """
             SELECT p.nombre_producto, p.precio_venta, p.imagen,
                    COALESCE(c.nombre_categoria, 'Sin categoría') AS nombre_categoria,
@@ -88,13 +92,15 @@ class ReportesRepository(private val context: Context) {
             INNER JOIN ventas v ON d.id_venta = v.id_venta
             INNER JOIN productos p ON d.id_producto = p.id_producto
             LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
-            WHERE v.fecha_venta BETWEEN ? AND ?
+            WHERE v.fecha_venta BETWEEN ? AND ?$filtroCuenta
             GROUP BY p.id_producto
             ORDER BY total_vendidos DESC
             LIMIT ?
         """.trimIndent()
 
-        val cursor = db.rawQuery(query, arrayOf(desde, hasta, limite.toString()))
+        val args = if (idCuenta != null) arrayOf(desde, hasta, idCuenta.toString(), limite.toString())
+        else arrayOf(desde, hasta, limite.toString())
+        val cursor = db.rawQuery(query, args)
         if (cursor.moveToFirst()) {
             do {
                 val nombreImagen = cursor.getString(cursor.getColumnIndexOrThrow("imagen"))
@@ -113,5 +119,67 @@ class ReportesRepository(private val context: Context) {
         cursor.close()
         db.close()
         return lista
+    }
+
+    /** Monto vendido (revenue) por categoría entre dos fechas, ordenado de mayor a menor. */
+    data class CategoriaMonto(val nombre: String, val monto: Double)
+
+    fun splitPorCategoria(desde: String, hasta: String, idCuenta: Int? = null): List<CategoriaMonto> {
+        val lista = mutableListOf<CategoriaMonto>()
+        val db = dbHelper.readableDatabase
+        val filtroCuenta = if (idCuenta != null) " AND v.cuenta_id_cuenta = ?" else ""
+        val query = """
+            SELECT COALESCE(c.nombre_categoria, 'Sin categoría') AS nombre_categoria,
+                   SUM(d.cantidad * d.precio_unitario) AS monto
+            FROM detalle_venta d
+            INNER JOIN ventas v ON d.id_venta = v.id_venta
+            INNER JOIN productos p ON d.id_producto = p.id_producto
+            LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+            WHERE v.fecha_venta BETWEEN ? AND ?$filtroCuenta
+            GROUP BY nombre_categoria
+            ORDER BY monto DESC
+        """.trimIndent()
+        val args = if (idCuenta != null) arrayOf(desde, hasta, idCuenta.toString()) else arrayOf(desde, hasta)
+        val cursor = db.rawQuery(query, args)
+        if (cursor.moveToFirst()) {
+            do {
+                lista.add(
+                    CategoriaMonto(
+                        nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre_categoria")),
+                        monto = cursor.getDouble(cursor.getColumnIndexOrThrow("monto"))
+                    )
+                )
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return lista
+    }
+
+    /**
+     * Clientes "nuevos" en el periodo: aquellos cuya PRIMERA compra (dentro
+     * del alcance filtrado por [idCuenta], o en toda la tienda si es null)
+     * cae dentro de [desde, hasta]. Reemplaza el "48" fijo que había en el
+     * XML por un número real calculado de la base de datos.
+     */
+    fun clientesNuevosEntreFechas(desde: String, hasta: String, idCuenta: Int? = null): Int {
+        val db = dbHelper.readableDatabase
+        val filtroCuenta = if (idCuenta != null) "WHERE cuenta_id_cuenta = ?" else ""
+        val query = """
+            SELECT COUNT(*) FROM (
+                SELECT id_cliente, MIN(fecha_venta) AS primera_compra
+                FROM ventas
+                $filtroCuenta
+                GROUP BY id_cliente
+            ) t
+            WHERE t.primera_compra BETWEEN ? AND ?
+        """.trimIndent()
+        val args = if (idCuenta != null) arrayOf(idCuenta.toString(), desde, hasta) else arrayOf(desde, hasta)
+        val cursor = db.rawQuery(query, args)
+        var cantidad = 0
+        if (cursor.moveToFirst()) cantidad = cursor.getInt(0)
+        cursor.close()
+        db.close()
+        return cantidad
     }
 }

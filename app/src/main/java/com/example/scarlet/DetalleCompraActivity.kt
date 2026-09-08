@@ -15,7 +15,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.scarlet.adapter.ComprasAdapter
 import com.example.scarlet.data.model.PagoCompra
 import com.example.scarlet.data.repository.ComprasRepository
+import com.example.scarlet.util.ComprobanteUtils
 import com.example.scarlet.util.FechaUtils
+import com.example.scarlet.util.ImpuestosUtils
 import com.example.scarlet.util.Session
 import java.util.Locale
 
@@ -60,6 +62,17 @@ class DetalleCompraActivity : AppCompatActivity() {
             Toast.makeText(this, "La compra ya no existe", Toast.LENGTH_SHORT).show()
             finish()
             return
+        }
+
+        /*findViewById<TextView>(R.id.btnComprobanteCompra).setOnClickListener {
+            val detalle = comprasRepository.listarDetalle(idCompra)
+            val pagos = comprasRepository.listarPagos(idCompra)
+            ComprobanteUtils.imprimirCompra(this, compra, detalle, pagos)
+        }*/
+        findViewById<TextView>(R.id.btnGenerarComprobante).setOnClickListener {
+            val detalle = comprasRepository.listarDetalle(idCompra)
+            val pagos = comprasRepository.listarPagos(idCompra)
+            com.example.scarlet.util.ComprobanteUtils.imprimirComprobanteCompra(this, compra, detalle, pagos)
         }
 
         findViewById<TextView>(R.id.txtProveedorDetalle).text = compra.razonSocialProveedor ?: "-"
@@ -148,12 +161,15 @@ class DetalleCompraActivity : AppCompatActivity() {
         val llPagos = findViewById<LinearLayout>(R.id.llPagos)
         llPagos.removeAllViews()
         val pagos = comprasRepository.listarPagos(idCompra)
-        pagos.forEach { pago ->
+        pagos.forEachIndexed { index, pago ->
             val fila = LayoutInflater.from(this).inflate(R.layout.item_pago_compra, llPagos, false)
             fila.findViewById<TextView>(R.id.txtFechaPago).text = ComprasAdapter.formatearFecha(pago.fecha)
             fila.findViewById<TextView>(R.id.txtMetodoPago).text = pago.metodoPago
             fila.findViewById<TextView>(R.id.txtMontoPago).text = ComprasAdapter.formatearBs(pago.monto)
             fila.findViewById<TextView>(R.id.txtPorPago).text = pago.registradoPor ?: "-"
+            fila.findViewById<TextView>(R.id.btnComprobantePago).setOnClickListener {
+                ComprobanteUtils.imprimirPagoCompra(this, compra, pago, numeroAbono = index + 1)
+            }
             llPagos.addView(fila)
         }
 
@@ -195,10 +211,27 @@ class DetalleCompraActivity : AppCompatActivity() {
 
                 if (comprasRepository.registrarPago(pago) > 0) {
                     Toast.makeText(this, "Abono registrado", Toast.LENGTH_SHORT).show()
-                    edtMonto.setText("")
-                    edtEfectivo.setText("")
-                    edtObservacion.setText("")
+                    edtMonto.setText(""); edtEfectivo.setText(""); edtObservacion.setText("")
                     cargarDatos()
+
+                    // Traemos la compra ya actualizada (con el nuevo total pagado/saldo)
+                    val compraActualizada = comprasRepository.obtenerCompra(idCompra)
+                    val detalleActualizado = comprasRepository.listarDetalle(idCompra)
+                    val pagosActualizados = comprasRepository.listarPagos(idCompra)
+                    val pagoRecienRegistrado = pagosActualizados.maxByOrNull { it.idPagoCompra }
+
+                    if (compraActualizada != null) {
+                        AlertDialog.Builder(this)
+                            .setTitle("Abono registrado")
+                            .setMessage("¿Deseas generar el comprobante de pago ahora?")
+                            .setNegativeButton("Más tarde", null)
+                            .setPositiveButton("Generar comprobante") { _, _ ->
+                                com.example.scarlet.util.ComprobanteUtils.imprimirComprobanteCompra(
+                                    this, compraActualizada, detalleActualizado, pagosActualizados, pagoRecienRegistrado
+                                )
+                            }
+                            .show()
+                    }
                 } else {
                     Toast.makeText(this, "No se pudo registrar el abono", Toast.LENGTH_SHORT).show()
                 }
@@ -223,12 +256,15 @@ class DetalleCompraActivity : AppCompatActivity() {
             llProductos.addView(fila)
         }
 
-        val base = compra.total / 1.13
-        val iva = base * 0.13
-        val it = base * 0.03
-        findViewById<TextView>(R.id.txtImporteBase).text = ComprasAdapter.formatearBs(base)
-        findViewById<TextView>(R.id.txtIva).text = ComprasAdapter.formatearBs(iva)
-        findViewById<TextView>(R.id.txtIt).text = ComprasAdapter.formatearBs(it)
+        // CORRECCIÓN: antes se hacía `compra.total / 1.13` (solo IVA), pero
+        // el total incluye IVA (13%) + IT (3%) = 16%. Al dividir por 1.13 en
+        // vez de 1.16, la base imponible, el IVA y el IT no cuadraban con el
+        // total facturado. Se usa el mismo ImpuestosUtils que ya se usa
+        // para ventas, para que ambos lados de la app calculen igual.
+        val desglose = ImpuestosUtils.desdeTotalConImpuestos(compra.total)
+        findViewById<TextView>(R.id.txtImporteBase).text = ComprasAdapter.formatearBs(desglose.subtotal)
+        findViewById<TextView>(R.id.txtIva).text = ComprasAdapter.formatearBs(desglose.iva)
+        findViewById<TextView>(R.id.txtIt).text = ComprasAdapter.formatearBs(desglose.it)
         findViewById<TextView>(R.id.txtTotalFacturado).text = ComprasAdapter.formatearBs(compra.total)
     }
 

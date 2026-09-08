@@ -560,6 +560,22 @@
         app:menu="@menu/bottom_menu" />
 
     <!-- ========================= -->
+    <!-- OVERLAY DEL MENÚ LATERAL (cubre toda la pantalla; antes estaba
+         metido dentro del LinearLayout del menú con 0dp de ancho/alto,
+         así que nunca cubría nada y tocar fuera no cerraba el menú) -->
+    <!-- ========================= -->
+    <View
+        android:id="@+id/viewMenuOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- ========================= -->
     <!-- MENÚ LATERAL -->
     <!-- ========================= -->
 
@@ -575,7 +591,6 @@
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/headerLayout"
         app:layout_constraintStart_toStartOf="parent">
-
         <!-- MI CUENTA -->
         <TextView
             android:id="@+id/menuMiCuenta"

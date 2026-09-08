@@ -25,11 +25,28 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <ImageView
+            android:id="@+id/imgMenu"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="10dp"
+            android:padding="11dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/menu"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Menú" />
+
+        <ImageView
             android:id="@+id/btnBack"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:layout_marginTop="2dp"
             android:layout_marginEnd="14dp"
+            android:padding="11dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
             android:contentDescription="Volver"
             android:src="@drawable/back_arrow" />
 
@@ -234,6 +251,122 @@
             android:text="No se encontraron categorías con esos filtros."
             android:textColor="#777777"
             android:textSize="13sp" />
+
+    </LinearLayout>
+
+
+    <!-- ========================= -->
+    <!-- OVERLAY DEL MENÚ LATERAL (cubre toda la pantalla para poder
+         cerrarlo tocando fuera de él) -->
+    <!-- ========================= -->
+    <View
+        android:id="@+id/viewMenuOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- ========================= -->
+    <!-- MENÚ LATERAL -->
+    <!-- ========================= -->
+
+    <LinearLayout
+        android:id="@+id/sideMenu"
+        android:layout_width="230dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#151515"
+        android:elevation="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/menuMiCuenta"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Mi cuenta"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuCaja"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Caja"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuCategorias"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Categorías"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuProveedores"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Proveedores"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuInventario"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Inventario"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuReabastecimiento"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Reabastecimiento"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuCajeros"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Cuentas de Cajero"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuSalir"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Salir"
+            android:textColor="#FF2A00"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 

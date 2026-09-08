@@ -55,6 +55,20 @@
                 android:textSize="19sp"
                 android:textStyle="bold" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnComprobanteCompra"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/bg_btn_outline_grey"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="🧾 Comprobante"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <ScrollView
@@ -607,17 +621,44 @@
         </LinearLayout>
     </ScrollView>
 
-    <TextView
-        android:id="@+id/btnCerrarDetalle"
+    <LinearLayout
+        android:id="@+id/footerDetalleCompra"
         android:layout_width="0dp"
-        android:layout_height="52dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:background="#080808"
-        android:gravity="center"
-        android:text="Cerrar Detalle"
-        android:textColor="#999999"
-        android:textSize="13sp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/btnGenerarComprobante"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_guardar_button"
+            android:gravity="center"
+            android:text="Generar comprobante"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnCerrarDetalle"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_btn_outline_grey"
+            android:gravity="center"
+            android:text="Cerrar Detalle"
+            android:textColor="#999999"
+            android:textSize="12sp" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

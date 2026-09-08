@@ -79,4 +79,19 @@
 
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tvDialogAgotado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_badge_stock_bajo"
+        android:gravity="center"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:text="Sin stock disponible — no se puede vender"
+        android:textColor="#FF2A00"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
 </LinearLayout>

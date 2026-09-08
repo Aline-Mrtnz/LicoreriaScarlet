@@ -244,6 +244,39 @@
             </LinearLayout>
 
             <!-- ========================= -->
+            <!-- BOTÓN: Comprobante del periodo -->
+            <!-- ========================= -->
+            <TextView
+                android:id="@+id/btnComprobanteReporte"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/bg_btn_outline_grey"
+                android:gravity="center"
+                android:text="🧾  Generar comprobante del periodo"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <!-- ========================= -->
+            <!-- VISTA GENERAL (solo Administrador): junta las ventas y
+                 estadísticas de TODOS los cajeros + el propio admin. Por
+                 defecto cada quien ve solo lo suyo (reporte por rol). -->
+            <!-- ========================= -->
+            <TextView
+                android:id="@+id/btnVistaGeneral"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_filter_unselected"
+                android:gravity="center"
+                android:text="👥  Ver reporte general (todos los cajeros)"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <!-- ========================= -->
             <!-- TARJETAS: TOTAL VENTAS y GANANCIA -->
             <!-- ========================= -->
             <LinearLayout
@@ -289,9 +322,10 @@
                         android:layout_marginTop="4dp">
 
                         <TextView
+                            android:id="@+id/txtTendenciaVentas"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="▲ +12.5%"
+                            android:text="▲ +0.0%"
                             android:textColor="#4CAF50"
                             android:textSize="11sp"
                             android:textStyle="bold" />
@@ -336,9 +370,10 @@
                         android:layout_marginTop="4dp">
 
                         <TextView
+                            android:id="@+id/txtTendenciaGanancia"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="▲ +8.2%"
+                            android:text="▲ +0.0%"
                             android:textColor="#4CAF50"
                             android:textSize="11sp"
                             android:textStyle="bold" />
@@ -369,6 +404,7 @@
                     android:layout_marginBottom="12dp" />
 
                 <TextView
+                    android:id="@+id/txtRendimientoSubtitulo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Últimos 7 días"
@@ -387,7 +423,7 @@
                     <!-- Día 1 -->
                     <LinearLayout
                         android:layout_width="0dp"
-                        android:layout_height="120dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:gravity="bottom"
@@ -414,7 +450,7 @@
                     <!-- Día 2 -->
                     <LinearLayout
                         android:layout_width="0dp"
-                        android:layout_height="120dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:gravity="bottom"
@@ -441,7 +477,7 @@
                     <!-- Día 3 -->
                     <LinearLayout
                         android:layout_width="0dp"
-                        android:layout_height="120dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:gravity="bottom"
@@ -468,7 +504,7 @@
                     <!-- Día 4 -->
                     <LinearLayout
                         android:layout_width="0dp"
-                        android:layout_height="120dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:gravity="bottom"
@@ -495,7 +531,7 @@
                     <!-- Día 5 -->
                     <LinearLayout
                         android:layout_width="0dp"
-                        android:layout_height="120dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:gravity="bottom"
@@ -522,7 +558,7 @@
                     <!-- Día 6 -->
                     <LinearLayout
                         android:layout_width="0dp"
-                        android:layout_height="120dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:gravity="bottom"
@@ -549,7 +585,7 @@
                     <!-- Día 7 -->
                     <LinearLayout
                         android:layout_width="0dp"
-                        android:layout_height="120dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:gravity="bottom">
@@ -660,15 +696,16 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Conversión"
+                        android:text="Artículos/Venta"
                         android:textColor="#888888"
                         android:textSize="10sp"
                         android:letterSpacing="0.05" />
 
                     <TextView
+                        android:id="@+id/txtArticulosPorVenta"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="12.5%"
+                        android:text="0.0"
                         android:textColor="#FFFFFF"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -696,9 +733,10 @@
                         android:letterSpacing="0.05" />
 
                     <TextView
+                        android:id="@+id/txtTopCategoria"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Whisky"
+                        android:text="-"
                         android:textColor="#FFFFFF"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -730,15 +768,16 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="New Customers"
+                        android:text="Nuevos clientes"
                         android:textColor="#888888"
                         android:textSize="10sp"
                         android:letterSpacing="0.05" />
 
                     <TextView
+                        android:id="@+id/txtNuevosClientes"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="48"
+                        android:text="0"
                         android:textColor="#FFFFFF"
                         android:textSize="22sp"
                         android:textStyle="bold"
@@ -765,8 +804,9 @@
                         android:textStyle="bold"
                         android:layout_marginBottom="8dp" />
 
-                    <!-- Whisky -->
+                    <!-- Categoría 1 (la de mayor venta en el periodo) -->
                     <LinearLayout
+                        android:id="@+id/rowCatSplit1"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -780,24 +820,27 @@
                             android:layout_marginEnd="6dp" />
 
                         <TextView
+                            android:id="@+id/txtCatSplit1Label"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Whisky"
+                            android:text="-"
                             android:textColor="#888888"
                             android:textSize="10sp" />
 
                         <TextView
+                            android:id="@+id/txtCatSplit1Value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="45%"
+                            android:text="0%"
                             android:textColor="#FFFFFF"
                             android:textSize="10sp" />
 
                     </LinearLayout>
 
-                    <!-- Tequila -->
+                    <!-- Categoría 2 -->
                     <LinearLayout
+                        android:id="@+id/rowCatSplit2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -811,24 +854,27 @@
                             android:layout_marginEnd="6dp" />
 
                         <TextView
+                            android:id="@+id/txtCatSplit2Label"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Tequila"
+                            android:text="-"
                             android:textColor="#888888"
                             android:textSize="10sp" />
 
                         <TextView
+                            android:id="@+id/txtCatSplit2Value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="25%"
+                            android:text="0%"
                             android:textColor="#FFFFFF"
                             android:textSize="10sp" />
 
                     </LinearLayout>
 
-                    <!-- Wine -->
+                    <!-- Categoría 3 -->
                     <LinearLayout
+                        android:id="@+id/rowCatSplit3"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -842,24 +888,27 @@
                             android:layout_marginEnd="6dp" />
 
                         <TextView
+                            android:id="@+id/txtCatSplit3Label"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Wine"
+                            android:text="-"
                             android:textColor="#888888"
                             android:textSize="10sp" />
 
                         <TextView
+                            android:id="@+id/txtCatSplit3Value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="20%"
+                            android:text="0%"
                             android:textColor="#FFFFFF"
                             android:textSize="10sp" />
 
                     </LinearLayout>
 
-                    <!-- Others -->
+                    <!-- Resto de categorías agrupadas -->
                     <LinearLayout
+                        android:id="@+id/rowCatSplitOtros"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -875,14 +924,15 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Others"
+                            android:text="Otros"
                             android:textColor="#888888"
                             android:textSize="10sp" />
 
                         <TextView
+                            android:id="@+id/txtCatSplitOtrosValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="10%"
+                            android:text="0%"
                             android:textColor="#FFFFFF"
                             android:textSize="10sp" />
 
@@ -921,6 +971,22 @@
         app:menu="@menu/bottom_menu" />
 
     <!-- ========================= -->
+    <!-- OVERLAY DEL MENÚ LATERAL (cubre toda la pantalla; antes estaba
+         metido dentro del LinearLayout del menú con 0dp de ancho/alto,
+         así que nunca cubría nada y tocar fuera no cerraba el menú) -->
+    <!-- ========================= -->
+    <View
+        android:id="@+id/viewMenuOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- ========================= -->
     <!-- MENÚ LATERAL -->
     <!-- ========================= -->
 
@@ -936,7 +1002,6 @@
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/headerLayout"
         app:layout_constraintStart_toStartOf="parent">
-
         <TextView
             android:id="@+id/menuMiCuenta"
             android:layout_width="match_parent"
@@ -944,6 +1009,16 @@
             android:gravity="center_vertical"
             android:paddingStart="20dp"
             android:text="Mi cuenta"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuCaja"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Caja"
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
 
@@ -975,6 +1050,26 @@
             android:gravity="center_vertical"
             android:paddingStart="20dp"
             android:text="Inventario"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuReabastecimiento"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Reabastecimiento"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/menuCajeros"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:text="Cuentas de Cajero"
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
 

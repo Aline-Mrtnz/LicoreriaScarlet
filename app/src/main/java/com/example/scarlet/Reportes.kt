@@ -1,5 +1,7 @@
 package com.example.scarlet
 
+import com.example.scarlet.util.NavegacionOrigen
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -17,6 +19,7 @@ import com.example.scarlet.data.repository.ReportesRepository
 import com.example.scarlet.data.repository.CuentaRepository
 import com.example.scarlet.data.repository.VentasRepository
 import com.example.scarlet.util.FechaUtils
+import com.example.scarlet.util.ImpuestosUtils
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.text.NumberFormat
 import java.util.Locale
@@ -24,7 +27,9 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import com.example.scarlet.util.Session
+import com.example.scarlet.util.ComprobanteUtils
 import com.example.scarlet.cart.CartManager
+import com.example.scarlet.data.model.TopProducto
 
 
 class Reportes : AppCompatActivity() {
@@ -47,64 +52,91 @@ class Reportes : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_reports)
 
-        // Reportes es información financiera sensible: solo Administrador.
-        // Se valida aquí (y no solo ocultando el botón que lleva a esta
-        // pantalla) para que tampoco sea alcanzable por navegación directa.
-        if (!Session.esAdmin) {
-            Toast.makeText(this, "Acceso solo para administradores", Toast.LENGTH_SHORT).show()
+        // ANTES esta pantalla era 100% exclusiva de Administrador (bloqueaba
+        // a cualquier cajero que la abriera desde el menú inferior). Ahora
+        // cualquier cuenta logueada puede entrar, pero cada quien ve SOLO
+        // sus propias estadísticas/reportes: el filtrado por rol se hace
+        // más abajo, en updateDataForFilter()/cargarGraficoRendimiento(),
+        // usando `idCuentaParaReporte()`. Solo el Administrador tiene además
+        // el botón "Ver reporte general" para juntar todas las cuentas
+        // (ya que en este sistema solo puede existir un Administrador).
+        if (!Session.estaLogueado) {
+            Toast.makeText(this, "Debes iniciar sesión", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
         val imgMenu = findViewById<ImageView>(R.id.imgMenu)
         val sideMenu = findViewById<LinearLayout>(R.id.sideMenu)
+        val menuOverlay = findViewById<View>(R.id.viewMenuOverlay)
         val menuProveedores = findViewById<TextView>(R.id.menuProveedores)
         val menuMiCuenta = findViewById<TextView>(R.id.menuMiCuenta)
 
-        imgMenu.setOnClickListener {
-
-            if (sideMenu.visibility == View.GONE) {
-
-                sideMenu.visibility = View.VISIBLE
-
-                sideMenu.translationX = -sideMenu.width.toFloat()
-
-                sideMenu.animate()
-                    .translationX(0f)
-                    .setDuration(250)
-                    .start()
-
-            } else {
-
-                sideMenu.animate()
-                    .translationX(-sideMenu.width.toFloat())
-                    .setDuration(250)
-                    .withEndAction {
-                        sideMenu.visibility = View.GONE
-                    }
-                    .start()
-            }
+        fun abrirMenu() {
+            menuOverlay.visibility = View.VISIBLE
+            sideMenu.visibility = View.VISIBLE
+            sideMenu.translationX = -sideMenu.width.toFloat()
+            sideMenu.animate().translationX(0f).setDuration(250).start()
+            resaltarItemMenuActual()
         }
+
+        fun cerrarMenu() {
+            sideMenu.animate()
+                .translationX(-sideMenu.width.toFloat())
+                .setDuration(200)
+                .withEndAction {
+                    sideMenu.visibility = View.GONE
+                    menuOverlay.visibility = View.GONE
+                }
+                .start()
+        }
+
+        imgMenu.setOnClickListener {
+            if (sideMenu.visibility == View.GONE) abrirMenu() else cerrarMenu()
+        }
+
+        // Cualquier toque fuera del menú (en el resto de la pantalla) lo cierra
+        menuOverlay.setOnClickListener { cerrarMenu() }
         // para el mi cuenta
         menuMiCuenta.setOnClickListener {
-            val intent = Intent(this, MiCuenta::class.java)
-            startActivity(intent)
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, MiCuenta::class.java)
+        }
+        // para caja
+        findViewById<TextView>(R.id.menuCaja).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, CajaActivity::class.java)
         }
         // para proveedores (antes no tenía listener: era inalcanzable)
         menuProveedores.setOnClickListener {
-            startActivity(Intent(this, Proveedores::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, Proveedores::class.java)
         }
         // para categorías
         findViewById<TextView>(R.id.menuCategorias).setOnClickListener {
-            startActivity(Intent(this, CategoriasActivity::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, CategoriasActivity::class.java)
         }
         // para inventario (existía en el layout pero sin listener: era inalcanzable)
         findViewById<TextView>(R.id.menuInventario).setOnClickListener {
-            startActivity(Intent(this, Inventario::class.java))
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, Inventario::class.java)
+        }
+        // para reabastecimiento / compras
+        findViewById<TextView>(R.id.menuReabastecimiento).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, Reabastecimiento::class.java)
+        }
+        // para cuentas de cajero
+        findViewById<TextView>(R.id.menuCajeros).setOnClickListener {
+            cerrarMenu()
+            NavegacionOrigen.abrirModulo(this, GestionCajeros::class.java)
         }
         // cerra sesion
 
         findViewById<TextView>(R.id.menuSalir).setOnClickListener {
+
+            cerrarMenu()
 
             AlertDialog.Builder(this)
                 .setTitle("Cerrar sesión")
@@ -185,6 +217,8 @@ class Reportes : AppCompatActivity() {
 
         configurarRecyclerView()
         setupFilters()
+        setupVistaGeneral()
+        setupComprobanteReporte()
         setupBottomNavigation()
         setupNotifications()
         cargarInformacionUsuario()
@@ -219,12 +253,9 @@ class Reportes : AppCompatActivity() {
     // El ícono de carrito y el de perfil existían en el layout pero nunca
     // tenían onClickListener (botones "muertos"). Se conectan aquí.
     private fun setupCarritoYPerfil() {
-        findViewById<ImageView>(R.id.imgCarrito).setOnClickListener {
-            if (CartManager.estaVacio()) {
-                Toast.makeText(this, "Tu carrito está vacío. Agrega productos primero.", Toast.LENGTH_SHORT).show()
-            } else {
-                startActivity(Intent(this, Shopping::class.java))
-            }
+        val imgCarritoReportes = findViewById<ImageView>(R.id.imgCarrito)
+        imgCarritoReportes.setOnClickListener {
+            com.example.scarlet.util.CarritoUtils.manejarClick(this, imgCarritoReportes)
         }
 
         findViewById<ImageView>(R.id.imgPerfil).setOnClickListener {
@@ -261,6 +292,31 @@ class Reportes : AppCompatActivity() {
 
     private var filtroActual = "Día"
 
+    // Reporte "por rol" (default): cada cajero/admin ve solo sus propias
+    // ventas. Solo el Administrador puede activar la vista general, que
+    // junta las ventas de TODAS las cuentas (todos los cajeros + admin).
+    private var vistaGeneral = false
+
+    /** Cuenta por la que se debe filtrar el reporte actual, o null = todas (vista general). */
+    private fun idCuentaParaReporte(): Int? = if (vistaGeneral) null else Session.idCuenta
+
+    private fun textoAlcanceReporte(): String =
+        if (vistaGeneral) "Vista general · todas las cuentas"
+        else "Cuenta: ${Session.nombreCompleto} (${Session.rol})"
+
+    // Datos del último periodo consultado, guardados para poder generar el
+    // comprobante del reporte con los mismos números que se ven en pantalla.
+    private var reporteDesde: String = ""
+    private var reporteHasta: String = ""
+    private var reporteTotalVentas: Double = 0.0
+    private var reporteSubtotalVentas: Double = 0.0
+    private var reporteIva: Double = 0.0
+    private var reporteIt: Double = 0.0
+    private var reporteGanancia: Double = 0.0
+    private var reporteCantidadVentas: Int = 0
+    private var reporteTopProductos: List<TopProducto> = emptyList()
+    private var reporteRendimiento: List<Pair<String, Double>> = emptyList()
+
     private fun configurarRecyclerView() {
         recyclerViewTopProductos = findViewById(R.id.recyclerViewTopProductos)
         recyclerViewTopProductos.layoutManager = LinearLayoutManager(this)
@@ -268,6 +324,40 @@ class Reportes : AppCompatActivity() {
 
         topProductosAdapter = TopProductosAdapter(emptyList())
         recyclerViewTopProductos.adapter = topProductosAdapter
+    }
+
+    /**
+     * El botón "Ver reporte general" SOLO existe para Administrador (en este
+     * sistema solo puede haber un admin). Al tocarlo alterna entre ver solo
+     * sus propias ventas y ver las de todos los cajeros + las suyas.
+     */
+    private fun setupVistaGeneral() {
+        val btnVistaGeneral = findViewById<TextView>(R.id.btnVistaGeneral)
+
+        if (!Session.esAdmin) {
+            btnVistaGeneral.visibility = View.GONE
+            return
+        }
+
+        btnVistaGeneral.visibility = View.VISIBLE
+        actualizarEstiloVistaGeneral(btnVistaGeneral)
+
+        btnVistaGeneral.setOnClickListener {
+            vistaGeneral = !vistaGeneral
+            actualizarEstiloVistaGeneral(btnVistaGeneral)
+            updateDataForFilter(filtroActual)
+            cargarGraficoRendimiento()
+        }
+    }
+
+    private fun actualizarEstiloVistaGeneral(boton: TextView) {
+        if (vistaGeneral) {
+            boton.text = "👤  Ver solo mis ventas"
+            boton.setBackgroundResource(R.drawable.bg_filter_selected)
+        } else {
+            boton.text = "👥  Ver reporte general (todos los cajeros)"
+            boton.setBackgroundResource(R.drawable.bg_filter_unselected)
+        }
     }
 
     private fun setupFilters() {
@@ -297,6 +387,11 @@ class Reportes : AppCompatActivity() {
                 selectedView = view
 
                 updateDataForFilter(name)
+                // IMPORTANTE: antes el gráfico de "Rendimiento" no se
+                // refrescaba al cambiar de filtro (por eso siempre mostraba
+                // lo mismo). Ahora que sí depende del filtro, hay que
+                // recargarlo también aquí.
+                cargarGraficoRendimiento()
             }
         }
     }
@@ -305,10 +400,15 @@ class Reportes : AppCompatActivity() {
         filtroActual = filter
         try {
             val (desde, hasta) = FechaUtils.rangoParaFiltro(filter)
+            val idCuenta = idCuentaParaReporte()
 
-            val totalVentas = ventasRepository.totalEntreFechas(desde, hasta)
-            val ganancia = ventasRepository.gananciaEntreFechas(desde, hasta)
-            val cantidadVentas = ventasRepository.cantidadVentasEntreFechas(desde, hasta)
+            // El total que se ve aquí YA incluye impuestos (así se guarda
+            // ahora en ventas.total, ver VentasRepository). Para desglosar
+            // subtotal/IVA/IT del periodo se revierte la fórmula.
+            val totalVentas = ventasRepository.totalEntreFechas(desde, hasta, idCuenta)
+            val desgloseImpuestos = ImpuestosUtils.desdeTotalConImpuestos(totalVentas)
+            val ganancia = ventasRepository.gananciaEntreFechas(desde, hasta, idCuenta)
+            val cantidadVentas = ventasRepository.cantidadVentasEntreFechas(desde, hasta, idCuenta)
 
             findViewById<TextView>(R.id.txtTotalVentas).text = formatoMoneda.format(totalVentas)
             findViewById<TextView>(R.id.txtGanancia).text = formatoMoneda.format(ganancia)
@@ -316,35 +416,194 @@ class Reportes : AppCompatActivity() {
             val avgTicket = if (cantidadVentas > 0) totalVentas / cantidadVentas else 0.0
             findViewById<TextView>(R.id.txtAvgTicket).text = formatoMoneda.format(avgTicket)
 
-            val topProductos = reportesRepository.topProductos(desde, hasta, limite = 5)
+            val topProductos = reportesRepository.topProductos(desde, hasta, limite = 5, idCuenta = idCuenta)
             topProductosAdapter.actualizar(topProductos)
+
+            cargarTendencias(filter, totalVentas, ganancia, idCuenta)
+            cargarTarjetasSecundarias(desde, hasta, cantidadVentas, idCuenta)
+
+            // Guardamos los datos reales del periodo consultado para el comprobante.
+            reporteDesde = desde
+            reporteHasta = hasta
+            reporteTotalVentas = totalVentas
+            reporteSubtotalVentas = desgloseImpuestos.subtotal
+            reporteIva = desgloseImpuestos.iva
+            reporteIt = desgloseImpuestos.it
+            reporteGanancia = ganancia
+            reporteCantidadVentas = cantidadVentas
+            reporteTopProductos = topProductos
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
+    /**
+     * Antes las flechitas "▲ +12.5%" / "▲ +8.2%" de Total Ventas y Ganancia
+     * eran texto fijo en el XML. Ahora se comparan contra el periodo
+     * inmediatamente anterior de la misma duración
+     * ([FechaUtils.rangoAnteriorParaFiltro]) y se calcula el % real.
+     */
+    private fun cargarTendencias(filter: String, totalVentasActual: Double, gananciaActual: Double, idCuenta: Int?) {
+        val (desdeAnterior, hastaAnterior) = FechaUtils.rangoAnteriorParaFiltro(filter)
+        val totalVentasAnterior = ventasRepository.totalEntreFechas(desdeAnterior, hastaAnterior, idCuenta)
+        val gananciaAnterior = ventasRepository.gananciaEntreFechas(desdeAnterior, hastaAnterior, idCuenta)
+
+        pintarTendencia(findViewById(R.id.txtTendenciaVentas), totalVentasAnterior, totalVentasActual)
+        pintarTendencia(findViewById(R.id.txtTendenciaGanancia), gananciaAnterior, gananciaActual)
+    }
+
+    private fun pintarTendencia(view: TextView, anterior: Double, actual: Double) {
+        val cambio = when {
+            anterior > 0 -> ((actual - anterior) / anterior) * 100.0
+            actual > 0 -> 100.0
+            else -> 0.0
+        }
+        val subio = cambio >= 0
+        val flecha = if (subio) "▲" else "▼"
+        val signo = if (subio) "+" else ""
+        view.text = "$flecha $signo${String.format(Locale("es", "BO"), "%.1f", cambio)}%"
+        view.setTextColor(if (subio) 0xFF4CAF50.toInt() else 0xFFE53935.toInt())
+    }
+
+    /**
+     * Llena con datos reales las tarjetas que antes tenían valores fijos
+     * en el XML: Artículos/Venta, Top Categoría, Nuevos clientes y
+     * Category Split (antes "Conversión 12.5%", "Whisky", "48" y el
+     * desglose Whisky/Tequila/Wine/Others hardcodeado).
+     */
+    private fun cargarTarjetasSecundarias(desde: String, hasta: String, cantidadVentas: Int, idCuenta: Int?) {
+        // Artículos por venta = unidades vendidas / cantidad de ventas.
+        val unidadesVendidas = ventasRepository.sumaCantidadEntreFechas(desde, hasta, idCuenta)
+        val articulosPorVenta = if (cantidadVentas > 0) unidadesVendidas.toDouble() / cantidadVentas else 0.0
+        findViewById<TextView>(R.id.txtArticulosPorVenta).text =
+            String.format(Locale("es", "BO"), "%.1f", articulosPorVenta)
+
+        // Split de ventas por categoría (top 3 + "Otros").
+        val split = reportesRepository.splitPorCategoria(desde, hasta, idCuenta)
+        val totalSplit = split.sumOf { it.monto }
+
+        findViewById<TextView>(R.id.txtTopCategoria).text = split.firstOrNull()?.nombre ?: "-"
+
+        val filas = listOf(
+            Triple(R.id.rowCatSplit1, R.id.txtCatSplit1Label, R.id.txtCatSplit1Value),
+            Triple(R.id.rowCatSplit2, R.id.txtCatSplit2Label, R.id.txtCatSplit2Value),
+            Triple(R.id.rowCatSplit3, R.id.txtCatSplit3Label, R.id.txtCatSplit3Value)
+        )
+        filas.forEachIndexed { index, (idRow, idLabel, idValue) ->
+            val fila = findViewById<View>(idRow)
+            val categoria = split.getOrNull(index)
+            if (categoria != null && totalSplit > 0) {
+                fila.visibility = View.VISIBLE
+                findViewById<TextView>(idLabel).text = categoria.nombre
+                val porcentaje = (categoria.monto / totalSplit) * 100.0
+                findViewById<TextView>(idValue).text = String.format(Locale("es", "BO"), "%.0f%%", porcentaje)
+            } else {
+                fila.visibility = View.GONE
+            }
+        }
+
+        val rowOtros = findViewById<View>(R.id.rowCatSplitOtros)
+        if (split.size > 3 && totalSplit > 0) {
+            val montoOtros = split.drop(3).sumOf { it.monto }
+            val porcentajeOtros = (montoOtros / totalSplit) * 100.0
+            findViewById<TextView>(R.id.txtCatSplitOtrosValue).text =
+                String.format(Locale("es", "BO"), "%.0f%%", porcentajeOtros)
+            rowOtros.visibility = View.VISIBLE
+        } else {
+            rowOtros.visibility = View.GONE
+        }
+
+        // Nuevos clientes: primera compra (dentro del alcance filtrado) cae en este periodo.
+        val nuevosClientes = reportesRepository.clientesNuevosEntreFechas(desde, hasta, idCuenta)
+        findViewById<TextView>(R.id.txtNuevosClientes).text = nuevosClientes.toString()
+    }
+
+    private fun setupComprobanteReporte() {
+        findViewById<TextView>(R.id.btnComprobanteReporte).setOnClickListener {
+            val ticketPromedio = if (reporteCantidadVentas > 0) reporteTotalVentas / reporteCantidadVentas else 0.0
+            // El comprobante ahora imprime TODO lo que se ve en la pantalla
+            // de Reportes: subtotal/IVA/IT, ganancia, cantidad de ventas,
+            // ticket promedio, el detalle del gráfico "Rendimiento" y el top
+            // de productos. Antes solo salían ganancia/cantidad/ticket/top.
+            ComprobanteUtils.imprimirReporte(
+                context = this,
+                periodo = filtroActual,
+                desde = reporteDesde,
+                hasta = reporteHasta,
+                alcance = textoAlcanceReporte(),
+                totalVentas = reporteTotalVentas,
+                subtotalVentas = reporteSubtotalVentas,
+                iva = reporteIva,
+                it = reporteIt,
+                ganancia = reporteGanancia,
+                cantidadVentas = reporteCantidadVentas,
+                ticketPromedio = ticketPromedio,
+                rendimiento = reporteRendimiento,
+                topProductos = reporteTopProductos
+            )
+        }
+    }
+
+    /**
+     * ANTES este gráfico llamaba siempre a `ultimosNDias(7)`, así que se
+     * veía exactamente igual sin importar si arriba elegías Día, Semana,
+     * Mes o Año. Ahora usa `FechaUtils.bucketsParaGrafico(filtroActual)`,
+     * que arma 7 tramos de tiempo distintos según el filtro (horas de hoy,
+     * días de la semana, tramos del mes o meses del año), y respeta también
+     * el filtro de cuenta (reporte por rol / vista general).
+     */
     private fun cargarGraficoRendimiento() {
         try {
-            val dias = FechaUtils.ultimosNDias(7)
-            val totales = ventasRepository.totalesPorDia(dias)
-            val maximo = totales.values.maxOrNull()?.takeIf { it > 0 } ?: 1.0
+            val buckets = FechaUtils.bucketsParaGrafico(filtroActual)
+            val idCuenta = idCuentaParaReporte()
+            val totalesPorBucket = ventasRepository.totalesPorBucket(buckets, idCuenta)
+            val maximo = totalesPorBucket.values.maxOrNull()?.takeIf { it > 0 } ?: 1.0
 
-            dias.forEachIndexed { index, dia ->
+            findViewById<TextView>(R.id.txtRendimientoSubtitulo).text = when (filtroActual) {
+                "Día" -> "Hoy, por franja horaria"
+                "Mes" -> "Últimos 28 días"
+                "Año" -> "Últimos 7 meses"
+                else -> "Últimos 7 días"
+            }
+
+            buckets.forEachIndexed { index, (etiqueta, _, _) ->
                 if (index >= barIds.size) return@forEachIndexed
-                val total = totales[dia] ?: 0.0
+                val total = totalesPorBucket[etiqueta] ?: 0.0
                 val alturaDp = (16 + (total / maximo) * 104).toInt() // entre 16dp y 120dp
                 val barView = findViewById<View>(barIds[index])
                 val params = barView.layoutParams
                 params.height = (alturaDp * resources.displayMetrics.density).toInt()
                 barView.layoutParams = params
 
-                findViewById<TextView>(lblIds[index]).text = FechaUtils.etiquetaDiaCorta(dia)
+                findViewById<TextView>(lblIds[index]).text = etiqueta
             }
+
+            reporteRendimiento = buckets.map { (etiqueta, _, _) -> etiqueta to (totalesPorBucket[etiqueta] ?: 0.0) }
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
+    private fun resaltarItemMenuActual() {
+        // Mapea cada item del menú con la Activity a la que navega.
+        // null = no navega a otra Activity (ej. "Salir"), nunca se resalta.
+        val items = listOf(
+            findViewById<TextView>(R.id.menuMiCuenta) to MiCuenta::class.java,
+            findViewById<TextView>(R.id.menuCaja) to CajaActivity::class.java,
+            findViewById<TextView>(R.id.menuCategorias) to CategoriasActivity::class.java,
+            findViewById<TextView>(R.id.menuProveedores) to Proveedores::class.java,
+            findViewById<TextView>(R.id.menuInventario) to Inventario::class.java,
+            findViewById<TextView>(R.id.menuReabastecimiento) to Reabastecimiento::class.java,
+            findViewById<TextView>(R.id.menuCajeros) to GestionCajeros::class.java
+        )
 
+        items.forEach { (item, clase) ->
+            val esActual = clase == this::class.java
+            item.setBackgroundResource(
+                if (esActual) R.drawable.bg_menu_item_selected else android.R.color.transparent
+            )
+            item.setTextColor(if (esActual) 0xFFFF3B16.toInt() else 0xFFCCCCCC.toInt())
+        }
+    }
     private fun setupBottomNavigation() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNav.selectedItemId = R.id.nav_reportes
